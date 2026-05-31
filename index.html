@@ -1,0 +1,3393 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ABDU S-CART - Admin Console</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- React and Recharts Dependencies -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+  <!-- Client-Side Document Export Systems -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: '#2563EB',
+            accent: '#F97316'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes subtlePulseConfirmed {
+      0%, 100% {
+        border-color: rgba(37, 99, 235, 0.35);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      50% {
+        border-color: rgba(37, 99, 235, 0.85);
+        box-shadow: 0 0 12px 3px rgba(37, 99, 235, 0.25);
+      }
+    }
+    @keyframes subtlePulseShipped {
+      0%, 100% {
+        border-color: rgba(249, 115, 22, 0.35);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      50% {
+        border-color: rgba(249, 115, 22, 0.85);
+        box-shadow: 0 0 12px 3px rgba(249, 115, 22, 0.25);
+      }
+    }
+    .status-pulse-confirmed {
+      animation: subtlePulseConfirmed 2.5s infinite ease-in-out;
+      border-width: 2px !important;
+    }
+    .status-pulse-shipped {
+      animation: subtlePulseShipped 2.5s infinite ease-in-out;
+      border-width: 2px !important;
+    }
+    @keyframes bulkStockUpdateSuccess {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        border-color: rgba(16, 185, 129, 0.4);
+        background-color: rgba(240, 253, 244, 0.95);
+      }
+      20% {
+        transform: scale(1.04);
+        box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+        border-color: rgba(16, 185, 129, 0.95);
+        background-color: rgba(220, 252, 231, 0.95);
+      }
+      40% {
+        transform: scale(1.01);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.35);
+        border-color: rgba(16, 185, 129, 0.9);
+        background-color: rgba(240, 253, 244, 0.85);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        border-color: rgba(16, 185, 129, 0.3);
+        background-color: rgba(240, 253, 244, 0.1);
+      }
+    }
+    .bulk-stock-success-pulse {
+      animation: bulkStockUpdateSuccess 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+      border-width: 2.5px !important;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans transition-colors duration-200 dark:bg-slate-900 dark:text-gray-100">
+
+  <!-- AUTH PORTAL GATEWAY -->
+  <div id="auth-portal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gradient-to-br from-blue-900 via-brand to-indigo-800">
+    <div class="bg-white/95 backdrop-blur-md rounded-2xl w-full max-w-sm p-6 shadow-2xl flex flex-col gap-4 text-center dark:bg-slate-800/95">
+      <div id="admin-login-branding-logo">
+        <div class="mx-auto w-16 h-16 rounded-full bg-brand/10 dark:bg-slate-700/50 flex items-center justify-center text-brand dark:text-accent text-3xl">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-black text-gray-800 dark:text-white">Admin Secure Terminal</h2>
+          <p class="text-xs text-gray-400 mt-1 font-semibold">ABDU S-CART Ltd. Control Panel</p>
+        </div>
+      </div>
+      <div class="flex flex-col gap-3 text-left">
+        <div>
+          <label class="text-[10px] uppercase font-bold text-gray-400">Email Address</label>
+          <input type="email" id="auth-email" placeholder="email@gmail.com" class="w-full text-xs px-3 py-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600 focus:outline-brand">
+        </div>
+        <div>
+          <label class="text-[10px] uppercase font-bold text-gray-400">Security Password</label>
+          <input type="password" id="auth-pass" placeholder="••••••••" class="w-full text-xs px-3 py-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600 focus:outline-brand">
+        </div>
+      </div>
+      <button onclick="attemptAdminSignIn()" class="w-full py-2.5 bg-brand hover:bg-blue-600 text-white font-black text-xs uppercase rounded-xl tracking-wider cursor-pointer">
+        Decrypt System Access
+      </button>
+      <div class="flex items-center my-1">
+        <div class="flex-grow border-t border-gray-200 dark:border-slate-600"></div>
+        <span class="px-2.5 text-[9px] font-extrabold uppercase text-gray-400 dark:text-slate-400">Or Decrypt via Google</span>
+        <div class="flex-grow border-t border-gray-200 dark:border-slate-600"></div>
+      </div>
+      <button onclick="attemptAdminGoogleSignIn()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-650 text-gray-700 dark:text-gray-100 font-black text-xs uppercase rounded-xl tracking-wider cursor-pointer flex items-center justify-center gap-2 border border-gray-200/60 dark:border-slate-600">
+        <i class="fab fa-google text-red-500 text-xs"></i> Connect with Google Admin
+      </button>
+      
+      <!-- Connect Firebase on admin gateway -->
+      <div class="mt-1 pt-3 border-t border-dashed border-gray-200 dark:border-slate-700 flex flex-col items-center gap-1">
+        <span class="text-[9px] text-gray-400 font-extrabold tracking-widest uppercase font-mono">Real-Time Database</span>
+        <button onclick="window.openFirebaseConfigDialog()" class="px-3.5 py-1.5 mt-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-slate-750 dark:text-accent dark:hover:bg-slate-700 text-[10px] font-black rounded-lg cursor-pointer transition flex items-center gap-1 border border-blue-100 dark:border-slate-600">
+          <i class="fas fa-plug text-[9px] text-orange-500"></i> Connect Database
+        </button>
+      </div>
+
+      <div class="text-[9px] text-gray-400 mt-1">Authorized personnel only. Logs recorded.</div>
+    </div>
+  </div>
+
+  <!-- CONTROL DASHBOARD LAYOUT (Hidden until verified) -->
+  <div id="admin-layout" class="hidden min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col pb-12">
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-30 bg-white border-b p-3 shadow-sm flex items-center justify-between dark:bg-slate-800 dark:border-slate-700">
+      <div class="flex items-center gap-2" id="admin-header-branding-logo">
+        <i class="fas fa-shield-halved text-brand text-xl dark:text-accent animate-pulse"></i>
+        <div class="leading-none">
+          <h1 class="font-extrabold text-sm tracking-tight text-gray-900 dark:text-white">ABDU S-CART Terminal</h1>
+          <span id="sys-mode-tag" class="text-[8px] bg-red-100 text-red-700 dark:bg-slate-700 dark:text-red-400 px-1.5 py-0.5 rounded font-black tracking-wide uppercase">Sandbox Session</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="toggleDarkMode()" class="p-1 hover:text-accent text-lg cursor-pointer text-gray-600 dark:text-gray-300">
+          <i id="dark-icon" class="fas fa-moon"></i>
+        </button>
+        <button onclick="adminSignOut()" class="px-2.5 py-1.5 border border-red-500 hover:bg-red-500 hover:text-white text-red-500 text-[10px] font-bold rounded-lg transition cursor-pointer">
+          <i class="fas fa-power-off"></i> Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Side navigation or top tab controllers -->
+    <div class="bg-white border-b flex overflow-x-auto select-none font-semibold text-[10px] dark:bg-slate-800 dark:border-slate-700 sticky top-[49px] z-20">
+      <button onclick="setTab('dashboard')" id="nav-dashboard" class="px-4 py-3 border-b-2 border-transparent hover:text-brand dark:hover:text-accent text-gray-500 cursor-pointer text-center flex-shrink-0">Analytics</button>
+      <button onclick="setTab('orders')" id="nav-orders" class="px-4 py-3 border-b-2 border-transparent hover:text-brand dark:hover:text-accent text-gray-500 cursor-pointer text-center flex-shrink-0 relative">Live Orders <span id="orders-alert" class="absolute top-1.5 right-1 bg-red-500 text-white text-[7px] w-3 h-3 rounded-full flex items-center justify-center animate-bounce hidden">!</span></button>
+      <button onclick="setTab('products')" id="nav-products" class="px-4 py-3 border-b-2 border-brand dark:border-accent text-brand dark:text-accent font-bold cursor-pointer text-center flex-shrink-0">Products</button>
+      <button onclick="setTab('categories')" id="nav-categories" class="px-4 py-3 border-b-2 border-transparent hover:text-brand dark:hover:text-accent text-gray-500 cursor-pointer text-center flex-shrink-0">Categories</button>
+      <button onclick="setTab('campaigns')" id="nav-campaigns" class="px-4 py-3 border-b-2 border-transparent hover:text-brand dark:hover:text-accent text-gray-500 cursor-pointer text-center flex-shrink-0">Campaigns/Sliders</button>
+      <button onclick="setTab('customers')" id="nav-customers" class="px-4 py-3 border-b-2 border-transparent hover:text-brand dark:hover:text-accent text-gray-500 cursor-pointer text-center flex-shrink-0">Customers</button>
+      <button onclick="setTab('notifications')" id="nav-notifications" class="px-4 py-3 border-b-2 border-transparent hover:text-brand dark:hover:text-accent text-gray-500 cursor-pointer text-center flex-shrink-0">Notifications</button>
+      <button onclick="setTab('settings')" id="nav-settings" class="px-4 py-3 border-b-2 border-transparent hover:text-brand dark:hover:text-accent text-gray-500 cursor-pointer text-center flex-shrink-0">Settings</button>
+    </div>
+
+    <!-- Main Container Content Area -->
+    <main class="max-w-4xl mx-auto w-full p-4 flex flex-col gap-4">
+
+      <!-- VIEW 1: STATS & ANALYTICS -->
+      <section id="view-dashboard" class="view-panel hidden flex flex-col gap-4">
+        <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">Dashboard Metrics</h2>
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <div class="bg-white p-3 rounded-xl shadow-sm border dark:bg-slate-800 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-extrabold text-gray-400">Total Sales</span>
+            <div id="stat-sales" class="text-xl font-black text-brand dark:text-accent mt-0.5">₹0</div>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border dark:bg-slate-800 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-extrabold text-gray-400">Checkout Orders</span>
+            <div id="stat-orders" class="text-xl font-black mt-0.5">0</div>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border dark:bg-slate-800 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-extrabold text-gray-400">Total Products</span>
+            <div id="stat-products" class="text-xl font-black mt-0.5">0</div>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border dark:bg-slate-800 dark:border-slate-700 relative flex flex-col justify-between">
+            <div>
+              <span class="text-[10px] uppercase font-extrabold text-gray-400">Low Stock Alerts</span>
+              <div id="stat-low-stock" class="text-xl font-black mt-0.5 text-red-500">0</div>
+            </div>
+            <div id="stat-low-stock-trend" class="text-[10px] font-bold mt-1 text-gray-400">
+              <i class="fas fa-minus"></i> 0% (vs last week)
+            </div>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border dark:bg-slate-800 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-extrabold text-gray-400">Theme Engine</span>
+            <div id="stat-theme" class="text-xs font-black uppercase tracking-wider text-emerald-600 mt-1">None</div>
+          </div>
+        </div>
+
+        <!-- Recharts Interactive Summary Chart representing Daily Orders last 7 Days -->
+        <div class="bg-white p-4 rounded-2xl border dark:bg-slate-800 dark:border-slate-700">
+          <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <i class="fas fa-chart-line text-brand dark:text-accent"></i>
+            7-Day Order Volume Analytics (Recharts)
+          </h3>
+          <div id="recharts-root" class="w-full h-64">
+            <div class="text-xs text-center text-gray-400 py-12 font-semibold">Loading order counts diagram...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: REAL-TIME INCOMING ORDERS -->
+      <section id="view-orders" class="view-panel hidden flex flex-col gap-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3 dark:border-slate-700">
+          <div>
+            <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">Incoming Orders Dashboard</h2>
+            <div class="text-[10px] font-bold text-gray-500 mt-1" id="orders-selection-summary">No orders selected</div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <!-- Select All / Deselect All Button -->
+            <button onclick="window.toggleAllOrdersSelection()" class="px-3.5 py-1.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-650 dark:text-slate-350 text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fas fa-check-double text-[11px] text-brand dark:text-accent"></i>
+              <span id="btn-select-all-orders-text">Select All</span>
+            </button>
+            <!-- Bulk Export ZIP & Invoice PDF Button -->
+            <button onclick="window.bulkExportSelectedOrders()" class="px-3.5 py-1.5 bg-brand hover:opacity-95 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fas fa-file-pdf text-[12px]"></i>
+              <span>Export Invoices ZIP</span>
+            </button>
+          </div>
+        </div>
+        <div id="orders-dashboard-grid" class="flex flex-col gap-4.5">
+          <!-- Dynamic loaded real-time orders here -->
+        </div>
+      </section>
+
+      <!-- VIEW 3: PRODUCT CATALOG MANAGER -->
+      <section id="view-products" class="view-panel flex flex-col gap-4">
+        <div class="flex justify-between items-center sm:flex-row flex-col gap-2">
+          <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">Storefront Inventory Catalog</h2>
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button onclick="window.exportCatalogCSV()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer" title="Export product inventory database to spreadsheet CSV format">
+              <i class="fas fa-file-csv text-[13px]"></i> Export CSV
+            </button>
+            <button onclick="openProductForm(null)" class="px-3.5 py-1.5 bg-brand hover:opacity-90 transition text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer">
+              <i class="fas fa-plus"></i> Record New Product
+            </button>
+          </div>
+        </div>
+
+        <!-- Product Inventory Editor Drawer (Modal Popup) -->
+        <div id="product-editor-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div class="bg-white rounded-2xl w-full max-w-md p-5 flex flex-col gap-3.5 relative shadow-2xl overflow-y-auto max-h-[90vh] dark:bg-slate-800">
+            <button onclick="closeProductForm()" class="absolute top-4 right-4 text-gray-400 text-lg cursor-pointer hover:text-black"><i class="fas fa-times"></i></button>
+            <h3 id="prod-modal-title" class="font-bold text-sm text-brand border-b pb-1 dark:text-accent">Add Product Card</h3>
+            
+            <div class="grid grid-cols-2 gap-3 text-xs font-semibold text-gray-600 dark:text-gray-300">
+              <div class="col-span-2">
+                <label>Product Name <span class="text-red-500">*</span></label>
+                <input type="text" id="prod-name" placeholder="Name" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div class="col-span-2">
+                <label>SKU / Barcode Code <span class="text-red-500">*</span></label>
+                <input type="text" id="prod-sku" placeholder="e.g. SKU10024, BAR9382103" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Price (₹) <span class="text-red-500">*</span></label>
+                <input type="number" id="prod-price" placeholder="Original price" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Offer Price (₹)</label>
+                <input type="number" id="prod-offer" placeholder="Offer price" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div class="col-span-2">
+                <label>Category Linked</label>
+                <select id="prod-category" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+                  <!-- Dynamic selection categories listed -->
+                </select>
+              </div>
+              <div class="col-span-2">
+                <label>Direct Image URLs (Indexed Lines)</label>
+                <textarea id="prod-images" placeholder="Image URLs (one link per line)" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600 h-16"></textarea>
+              </div>
+              <div class="col-span-2">
+                <label>Product Description Context / Specifications</label>
+                <textarea id="prod-desc" placeholder="Details" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600 h-14"></textarea>
+              </div>
+              <div>
+                <label>Inventory Stock</label>
+                <input type="number" id="prod-stock" value="10" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Low Stock Alert Trg</label>
+                <input type="number" id="prod-lowstock" value="3" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Comma-list Tags (e.g. Hot, Featured)</label>
+                <input type="text" id="prod-tags" placeholder="Hot, Bestseller" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Comma-list Variants size/color</label>
+                <input type="text" id="prod-variants" placeholder="S, M, L" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Delivery Day & Month (e.g. 15 June)</label>
+                <input type="text" id="prod-delivery-date" placeholder="e.g. 15 June" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Delivery Year</label>
+                <input type="number" id="prod-delivery-year" placeholder="e.g. 2026" value="2026" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div class="col-span-2">
+                <label>Custom Payment Link Setup Override</label>
+                <input type="text" id="prod-paylink" placeholder="Custom link redirection URL" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div class="col-span-2 flex flex-col md:flex-row gap-4 my-1 flex-wrap">
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input type="checkbox" id="prod-draft" class="w-4 h-4 rounded"> Mark Draft Campaign
+                </label>
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input type="checkbox" id="prod-hidden" class="w-4 h-4 rounded"> Secure Hide / Archive Card
+                </label>
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input type="checkbox" id="prod-cod" class="w-4 h-4 rounded" checked> Enable COD
+                </label>
+              </div>
+            </div>
+            
+            <button onclick="submitProduct()" class="w-full mt-2 py-2.5 bg-brand hover:bg-blue-600 text-white font-black uppercase text-xs rounded-xl tracking-wider cursor-pointer">
+              Deploy Catalog Record
+            </button>
+          </div>
+        </div>
+
+        <!-- Bulk Stock Update Controls -->
+        <div id="bulk-stock-bar" class="bg-slate-50 dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs w-full">
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 cursor-pointer font-extrabold text-gray-700 dark:text-gray-300">
+              <input type="checkbox" id="bulk-select-all" onclick="window.toggleBulkSelectAll(this)" class="w-4 h-4 rounded text-brand focus:ring-brand border-gray-300 dark:border-slate-605 bg-gray-50 dark:bg-slate-700">
+              <span>Select All</span>
+            </label>
+            <div class="h-4 w-px bg-slate-300 dark:bg-slate-650"></div>
+            <span class="font-bold text-gray-500 dark:text-gray-400">Selected: <span id="bulk-selected-count" class="text-brand dark:text-accent font-black">0</span> products</span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <span class="font-bold text-gray-500">Operation:</span>
+            <select id="bulk-stock-op" class="p-1.5 border rounded-lg bg-white dark:bg-slate-750 text-[11px] font-bold focus:outline-brand text-gray-750 dark:text-gray-200 border-gray-200 dark:border-slate-600">
+              <option value="set">Set Stock To</option>
+              <option value="add">Add (+)</option>
+              <option value="sub">Subtract (-)</option>
+            </select>
+            <input type="number" id="bulk-stock-val" placeholder="Qty" min="0" class="w-16 p-1.5 border rounded-lg bg-white dark:bg-slate-750 text-[11px] font-bold text-center focus:outline-brand text-gray-850 dark:text-gray-100 border-gray-200 dark:border-slate-600">
+            <button onclick="window.applyBulkStockUpdate()" class="px-3.5 py-1.5 bg-brand hover:bg-blue-600 text-white font-black uppercase text-[9.5px] tracking-wider rounded-xl shadow-sm cursor-pointer transition">
+              Apply Update
+            </button>
+            <div class="h-4 w-px bg-slate-300 dark:bg-slate-650 mx-1"></div>
+            <button onclick="window.applyBulkDelete()" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 font-extrabold rounded-xl text-[9.5px] uppercase cursor-pointer transition border border-red-200 dark:border-red-800/30 flex items-center gap-1.5">
+              <i class="fas fa-trash-alt"></i> Delete Selected
+            </button>
+            <button onclick="window.clearBulkSelection()" class="px-3 py-1.5 bg-gray-200/70 hover:bg-gray-250 text-gray-705 dark:bg-slate-700 dark:hover:bg-slate-650 dark:text-gray-200 font-extrabold rounded-xl text-[9.5px] uppercase cursor-pointer transition border border-gray-300/20 dark:border-slate-600">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div id="product-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <!-- Inventory display cards inside -->
+        </div>
+      </section>
+
+      <!-- VIEW 4: CATEGORY MANAGER -->
+      <section id="view-categories" class="view-panel hidden flex flex-col gap-4">
+        <div class="flex justify-between items-center sm:flex-row flex-col gap-1.5">
+          <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">Navigation Category Matrix</h2>
+          <button onclick="openCategoryForm(null)" class="px-3 py-1.5 bg-brand text-white text-xs font-bold rounded-xl shadow cursor-pointer flex items-center gap-1.5">
+            <i class="fas fa-plus"></i> Add Category Node
+          </button>
+        </div>
+
+        <!-- Category Editor Drawer (Modal Popup) -->
+        <div id="category-editor-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div class="bg-white rounded-2xl w-full max-w-sm p-5 flex flex-col gap-4 shadow-2xl dark:bg-slate-800">
+            <h3 id="cat-modal-title" class="font-bold text-sm border-b pb-1">Create Category Node</h3>
+            <div class="grid grid-cols-1 gap-3.5 text-xs font-semibold">
+              <div>
+                <label>Category Node Title <span class="text-red-500">*</span></label>
+                <input type="text" id="cat-title" placeholder="Electronics" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>FontAwesome Icon Class (e.g. fas fa-mobile-alt)</label>
+                <input type="text" id="cat-icon" placeholder="fas fa-couch" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Category Image URL (Recommended for Premium Real look)</label>
+                <input type="text" id="cat-image" placeholder="https://images.unsplash.com/photo-... or custom image URL" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Sort Order Position</label>
+                <input type="number" id="cat-order" value="1" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 focus:outline-brand dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div class="flex gap-4.5">
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" id="cat-featured" class="w-4 h-4 rounded"> Featured Main List
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" id="cat-hidden" class="w-4 h-4 rounded"> Set hidden
+                </label>
+              </div>
+            </div>
+            <div class="flex justify-end gap-2.5">
+              <button onclick="closeCategoryForm()" class="px-3.5 py-1.5 bg-gray-200 text-gray-600 rounded-lg text-xs font-bold dark:bg-slate-700 dark:text-gray-200">Cancel</button>
+              <button onclick="submitCategory()" class="px-3.5 py-1.5 bg-brand text-white rounded-lg text-xs font-bold">Register Code Node</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="categories-list-container" class="flex flex-col gap-3">
+          <!-- Live category rows listed -->
+        </div>
+      </section>
+
+      <!-- VIEW 5: SLIDER, COUPONS & DAILY OFFERS -->
+      <section id="view-campaigns" class="view-panel hidden flex flex-col gap-5">
+        <div class="flex flex-col gap-3.5 border-b pb-4 dark:border-slate-700">
+          <div class="flex justify-between items-center sm:flex-row flex-col gap-2">
+            <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">Multi-Banner Sliders</h2>
+            <button onclick="openSliderForm(null)" class="px-3 py-1.5 bg-brand text-white text-xs font-bold rounded-xl shadow cursor-pointer"><i class="fas fa-plus"></i> New Slider Banner</button>
+          </div>
+
+          <!-- Slider form modal code -->
+          <div id="slider-editor-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+            <div class="bg-white rounded-2xl w-full max-w-sm p-5 flex flex-col gap-3.5 shadow-2xl dark:bg-slate-800 text-xs font-semibold">
+              <h3 id="slider-modal-title" class="font-bold text-sm">New Multi-banner slider</h3>
+              <div>
+                <label>Slide Title</label>
+                <input type="text" id="slide-title" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Subtitle context info</label>
+                <input type="text" id="slide-subtitle" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Call-To-Action Button Text</label>
+                <input type="text" id="slide-button" value="Explore Now" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Redirection Target Link</label>
+                <input type="text" id="slide-link" placeholder="External link or action" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Campaign Banner Image URL</label>
+                <input type="text" id="slide-image" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Slide Scheduling End Date (Optional)</label>
+                <input type="datetime-local" id="slide-end" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div class="flex justify-end gap-2 mt-2">
+                <button onclick="closeSliderForm()" class="px-3.5 py-1.5 bg-gray-200 text-gray-600 rounded-lg font-bold dark:bg-slate-700 dark:text-gray-200">Cancel</button>
+                <button onclick="submitSlider()" class="px-3.5 py-1.5 bg-brand text-white rounded-lg font-bold">Deploy Slider</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="sliders-list" class="flex flex-col gap-2.5">
+            <!-- Dynamic list of banners -->
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Coupons Section -->
+          <div class="flex flex-col gap-3">
+            <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Coupons / Promo Codes</h3>
+            <div class="bg-white p-3.5 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700">
+              <div class="grid grid-cols-2 gap-2 text-[11px] font-semibold">
+                <input type="text" id="promo-code" placeholder="SAVE20" class="col-span-2 p-1.5 border uppercase rounded-lg dark:bg-slate-750">
+                <select id="promo-type" class="p-1.5 border rounded-lg dark:bg-slate-750">
+                  <option value="percentage">Percentage OFF (%)</option>
+                  <option value="flat">Flat Discount (₹)</option>
+                </select>
+                <input type="number" id="promo-value" placeholder="Discount Amount" class="p-1.5 border rounded-lg dark:bg-slate-755">
+                <input type="number" id="promo-min" placeholder="Min Purchase (₹)" class="col-span-2 p-1.5 border rounded-lg dark:bg-slate-750">
+              </div>
+              <button onclick="submitCoupon()" class="w-full py-1.5 bg-brand text-white font-bold text-xs rounded-xl cursor-pointer">Authorize Active Coupon</button>
+              
+              <div id="coupons-list" class="flex flex-col gap-1.5 mt-2 text-[10px]">
+                <!-- Dynamic active coupons inside -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Flash Countdown Offers Panel -->
+          <div class="flex flex-col gap-3">
+            <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Flash Sale Countdown Timer</h3>
+            <div class="bg-white p-4 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold">
+              <div class="flex items-center gap-1">
+                <input type="checkbox" id="flash-active" class="w-4 h-4 rounded"> Enable Live Flash Sale Area
+              </div>
+              <div>
+                <label>Countdown Expiry Deadline</label>
+                <input type="datetime-local" id="flash-expiry" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <div>
+                <label>Offer description/Details Alert banner</label>
+                <input type="text" id="flash-desc" placeholder="Flash Sale end very soon! Hurry!" class="w-full mt-2 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              </div>
+              <button onclick="deployFlashCounter()" class="w-full py-2 bg-accent text-white font-black rounded-xl cursor-pointer uppercase text-[10px] tracking-wide">Sync Live Countdown</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: GENERAL CONFIG, SUPPORT & FESTIVAL THEMES -->
+      <section id="view-settings" class="view-panel hidden flex flex-col gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 border-b pb-4 dark:border-slate-700">
+          
+          <!-- Festival Themes switcher -->
+          <div class="flex flex-col gap-2.5">
+            <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Live Festival Theme Switcher</h3>
+            <div class="bg-white p-3.5 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold">
+              <label>Select Festival Decoration Override</label>
+              <select id="setting-festival" class="w-full mt-1 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+                <option value="None">Standard Mode (Primary Blue)</option>
+                <option value="Ramadan">Ramadan (Emerald Gold/Starry)</option>
+                <option value="Eid">Eid Mubarak Campaign</option>
+                <option value="Diwali">Diwali (Glow Flame Diyas)</option>
+                <option value="Holi">Holi (Colors Splash Splash)</option>
+                <option value="Christmas">Christmas Holiday Season (Snowflakes)</option>
+                <option value="Independence Day">Independence Day (Tri-color Theme)</option>
+                <option value="Republic Day">Republic Day Theme</option>
+                <option value="New Year">New Year Eve Bash (Confetti)</option>
+                <option value="Black Friday">Black Friday Sale Campaign</option>
+              </select>
+              <button onclick="deployFestivalSettings()" class="w-full mt-1 py-2 bg-brand text-white font-bold rounded-xl cursor-pointer">Deploy Site-wide Theme</button>
+            </div>
+          </div>
+
+          <!-- Contact supports manager -->
+          <div class="flex flex-col gap-2.5">
+            <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Contact Help desk settings</h3>
+            <div class="bg-white p-3.5 rounded-2xl border flex flex-col gap-2.5 dark:bg-slate-800 dark:border-slate-700 text-[11px] font-semibold">
+              <input type="text" id="sup-whatsapp" placeholder="WhatsApp Number" class="p-1.5 border rounded-lg dark:bg-slate-750">
+              <input type="text" id="sup-instagram" placeholder="Instagram ID" class="p-1.5 border rounded-lg dark:bg-slate-750">
+              <input type="text" id="sup-tel" placeholder="Toll-Free Phone Helpline" class="p-1.5 border rounded-lg dark:bg-slate-750">
+              <input type="text" id="sup-email" placeholder="Customer Support Email" class="p-1.5 border rounded-lg dark:bg-slate-750">
+              <button onclick="saveSupportSettings()" class="w-full mt-1 py-1.5 bg-brand text-white font-bold rounded-lg cursor-pointer">Synchronise Channels</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW: DYNAMIC BRAND LOBBY & PAYMENT CONFIG -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 border-b pb-4 dark:border-slate-700">
+          
+          <!-- BRANDING: Logo Manager -->
+          <div class="flex flex-col gap-2.5">
+            <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Dynamic Branding (Logo Manager)</h3>
+            <div class="bg-white p-4 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold">
+              <label>Header Brand Logo Image URL</label>
+              <input type="text" id="setting-logo-url" placeholder="https://example.com/logo.png" class="w-full mt-1.5 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+              <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Enter a transparent PNG or SVG logo image URL to update the shop's branding instantly.</p>
+              
+              <label class="mt-2">Launch Splash / Cart Logo Image URL</label>
+              <input type="text" id="setting-splash-logo-url" placeholder="https://example.com/splash-cart.png" class="w-full p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+              <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Enter a prominent image URL to display when the user opens the application (splash screen)</p>
+
+              <button onclick="deployBrandingLogo()" class="w-full mt-2 py-2 bg-brand text-white font-bold rounded-xl hover:opacity-95 cursor-pointer">Deploy Logos</button>
+            </div>
+          </div>
+
+          <!-- PAYMENT GATEWAYS: COD Toggle -->
+          <div class="flex flex-col gap-2.5">
+            <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Master Payment Toggle Switch</h3>
+            <div class="bg-white p-4 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold select-none">
+              <div class="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl dark:bg-slate-900 border dark:border-slate-700">
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-black text-xs text-gray-800 dark:text-white">Cash on Delivery (COD)</span>
+                  <span class="text-[9px] text-gray-400 font-medium">Toggle COD payment method visibility on checkout</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="setting-cod-enabled" class="sr-only peer" checked>
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+              <button onclick="deployPaymentSettings()" class="w-full py-2 bg-emerald-650 hover:bg-emerald-700 text-white font-bold rounded-xl cursor-pointer">Deploy Payment Config</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW: DYNAMIC POLICY PAGES EDITOR -->
+        <div class="flex flex-col gap-2.5 border-b pb-4 dark:border-slate-700">
+          <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Dynamic Policy Pages Editor</h3>
+          <div class="bg-white p-4 rounded-2xl border flex flex-col gap-4 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- Terms & Conditions Textarea -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] text-blue-500 uppercase font-black">Terms & Conditions</label>
+                <textarea id="setting-page-terms" rows="6" placeholder="Terms governing orders & transactions guidelines..." class="p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-650 font-mono text-[10px] resize-none dark:text-white"></textarea>
+              </div>
+
+              <!-- Refund Policy Textarea -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] text-orange-500 uppercase font-black">Refund Policy</label>
+                <textarea id="setting-page-refund" rows="6" placeholder="Rules and processing timelines for claims..." class="p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-650 font-mono text-[10px] resize-none dark:text-white"></textarea>
+              </div>
+
+              <!-- Owner Contact Textarea -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] text-emerald-500 uppercase font-black">Owner Contact Info</label>
+                <textarea id="setting-page-contact" rows="6" placeholder="Customer helplines, support coordinates..." class="p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-650 font-mono text-[10px] resize-none dark:text-white"></textarea>
+              </div>
+            </div>
+
+            <button onclick="deployDynamicEditorialPages()" class="w-full py-2.5 bg-brand text-white font-black tracking-wide uppercase text-[10px] rounded-xl cursor-pointer">Deploy Policy & Info Updates</button>
+          </div>
+        </div>
+
+        <!-- NEW: SERVICEABLE DELIVERY LOCATIONS -->
+        <div class="flex flex-col gap-2.5 border-b pb-4 dark:border-slate-700">
+          <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Serviceable Delivery Areas (Shipping Locations)</h3>
+          <div class="bg-white p-4 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold">
+            <label>Serviceable Cities, States, or Districts (Comma-Separated)</label>
+            <div class="flex gap-2">
+              <input type="text" id="setting-locations" placeholder="e.g. Maharashtra, Gujarat, Mumbai, Surat" class="w-full p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-650 dark:text-white">
+              <button onclick="deployDeliveryLocations()" class="px-5 py-2 bg-brand text-white font-bold rounded-xl hover:opacity-95 whitespace-nowrap cursor-pointer">Save Locations</button>
+            </div>
+            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Enter the locations where you currently fulfill and deliver orders. Separate each by a comma. Users will use this list to check instantly if delivery is serviceable to their address.</p>
+            <div id="serviceable-locations-tags" class="flex flex-wrap gap-1.5 mt-1">
+              <!-- Location tags printed and editable here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW: INDIA DELIVERABLE STATES GEOGRAPHY CONFIG -->
+        <div class="flex flex-col gap-2.5 border-b pb-4 dark:border-slate-700">
+          <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">India Deliverable States Control</h3>
+          <div class="bg-white p-4 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold">
+            <div class="flex justify-between items-center bg-gray-50 dark:bg-slate-900 border dark:border-slate-700 p-2.5 rounded-xl">
+              <div>
+                <span class="font-black text-xs text-gray-800 dark:text-gray-100">Deliverable States Status</span>
+                <p class="text-[9.5px] text-gray-400 mt-1 uppercase font-bold">Only users choosing the permitted states will be allowed to complete orders.</p>
+              </div>
+              <div class="flex gap-1.5">
+                <button onclick="toggleAllStates(true)" class="px-2.5 py-1 bg-brand text-white font-extrabold text-[9px] uppercase tracking-wide rounded hover:opacity-90 cursor-pointer">Select All</button>
+                <button onclick="toggleAllStates(false)" class="px-2.5 py-1 bg-gray-200 text-gray-700 font-extrabold text-[9px] uppercase tracking-wide rounded hover:opacity-90 cursor-pointer dark:bg-slate-700 dark:text-gray-200">Deselect All</button>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-2 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl max-h-60 overflow-y-auto" id="india-states-checkbox-grid">
+              <!-- States checkboxes injected dynamically -->
+            </div>
+            
+            <button onclick="deployAllowedStatesSettings()" class="w-full mt-1.5 py-2.5 bg-brand text-white font-black uppercase text-xs rounded-xl tracking-wider hover:opacity-95 cursor-pointer">Save Allowed States Config</button>
+          </div>
+        </div>
+
+        <!-- Admin system credentials update system -->
+        <div class="flex flex-col gap-2.5">
+          <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Admin Security Settings</h3>
+          <div class="bg-white p-4 rounded-2xl border flex flex-col gap-3 max-w-sm dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold">
+            <div>
+              <label>Update Terminal Access Code (Admin password)</label>
+              <input type="password" id="sys-newpass" placeholder="Enter new complex password" class="w-full mt-1.5 p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+            </div>
+            <button onclick="updateSystemPassword()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl cursor-pointer">Deploy Security Update</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: REGISTERED CUSTOMERS (AUTHENTICATED VIA GOOGLE) -->
+      <section id="view-customers" class="view-panel hidden flex flex-col gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">Registered Customers (Google Authenticated)</h2>
+          <div class="relative max-w-sm w-full">
+            <input type="text" id="customers-search-input" oninput="renderCustomers()" placeholder="Search by name or email..." class="w-full text-gray-800 px-3 py-2 pl-9 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand bg-white border border-gray-200 dark:bg-slate-800 dark:text-white dark:border-slate-700 shadow-sm">
+            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border dark:bg-slate-800 dark:border-slate-700 p-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b dark:border-slate-700 text-gray-400 font-extrabold uppercase text-[10px]">
+                  <th class="pb-3 pt-1">User Profile</th>
+                  <th class="pb-3 pt-1">Email ID</th>
+                  <th class="pb-3 pt-1">Last Login</th>
+                  <th class="pb-3 pt-1">Saved Addresses</th>
+                  <th class="pb-3 pt-1 text-right">Moderation Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customers-table-body" class="font-semibold text-gray-800 dark:text-gray-200">
+                <tr>
+                   <td colspan="5" class="text-center py-8 text-gray-400">No customers registered yet. Connect Google Auth to register the first customer profile!</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 7: STOREFRONT NOTIFICATIONS & ANNOUNCEMENTS -->
+      <section id="view-notifications" class="view-panel hidden flex flex-col gap-4">
+        <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">Storefront Notifications & Announcements</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- CREATE NOTIFICATION FORM -->
+          <div class="flex flex-col gap-3">
+            <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Send New Notification</h3>
+            <div class="bg-white p-4 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold">
+              <div>
+                <label class="block mb-1">Notification Title *</label>
+                <input type="text" id="notif-title" placeholder="e.g., Weekend Mega Sale! 🛍️" class="w-full p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600 text-gray-800 dark:text-gray-100">
+              </div>
+              <div>
+                <label class="block mb-1">Message Content *</label>
+                <textarea id="notif-message" rows="3" placeholder="Write promotional message or store updates here..." class="w-full p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600 text-gray-800 dark:text-gray-100"></textarea>
+              </div>
+              <div>
+                <label class="block mb-1">Promo Image URL (Optional)</label>
+                <input type="text" id="notif-image-url" placeholder="https://images.unsplash.com/... (or blank)" class="w-full p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600 text-gray-800 dark:text-gray-100">
+              </div>
+              <div>
+                <label class="block mb-1">Expiry Date & Time (Optional)</label>
+                <input type="datetime-local" id="notif-expiry-date" class="w-full p-2 border rounded-xl bg-gray-50 dark:bg-slate-700 dark:border-slate-600 text-gray-800 dark:text-gray-100">
+              </div>
+              
+              <button onclick="publishBroadcastNotification()" class="w-full py-2 bg-brand text-white font-black rounded-xl cursor-pointer uppercase text-[10px] tracking-wide flex items-center justify-center gap-1.5 hover:bg-opacity-80 transition duration-200">
+                <i class="fas fa-paper-plane"></i> Broadcast Notification
+              </button>
+            </div>
+          </div>
+
+          <!-- SENT NOTIFICATIONS LIST -->
+          <div class="flex flex-col gap-3">
+            <h3 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Broadcast History</h3>
+            <div class="bg-white p-4 rounded-2xl border flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700 text-xs font-semibold max-h-[400px] overflow-y-auto">
+              <div id="admin-notifications-container" class="flex flex-col gap-3">
+                <!-- Notifications list items dynamically rendered -->
+                <div class="text-center py-8 text-gray-400">No active notification broadcasts. Use the form to send your first message.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Firebase Web Client App & Logic script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, child, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Application state constants
+    window.ACTIVE_TAB = 'products';
+    window.DATABASE_MODE = 'offline'; // 'rtdb' or 'offline'
+    let db = null;
+    let auth = null;
+
+    // Local Storage Mock Databases
+    const MOCK_LOCAL_STATE = {
+      theme: { activeFestival: 'None', customColors: { primary: '#2563EB', accent: '#F97316' } },
+      categories: [
+        { id: 'cat_electronics', title: 'Mobiles & Tech', icon: 'fas fa-mobile-alt', order: 1, featured: true },
+        { id: 'cat_fashion', title: 'Fashion', icon: 'fas fa-shirt', order: 2, featured: true },
+      ],
+      products: [
+        { id: 'prod_1', name: 'Z Flip Dual View Smartphone Extra Pro', price: 79999, offerPrice: 65999, description: 'Super folding design', category: 'cat_electronics', tags: 'Hot, Flash Sale', stock: 5, lowStockAlert: 3, image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500', isLocal: true }
+      ],
+      sliders: [
+        { id: 'slide_1', title: 'Grand Festival Special Offer', subtitle: 'Grab incredible discounts on checkout', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800', type: 'hero', order: 1 }
+      ],
+      support: { whatsapp: '918888888888', instagram: 'abdu_scart', email: 'raeenabdullah11@gmail.com', phone: '1800100121' },
+      orders: [
+        { id: 'ORD_1245', userId: 'mock_user_101', customer: { name: 'Adeel Khan', phone: '0888888885', address: 'Delhi Mall Market Ring Rd', city: 'Srinagar', state: 'Delhi', pincode: '190001' }, items: [{ name: 'Casual Denim Shirts Pack', price: 999, quantity: 1, image: '' }], subtotal: 999, discount: 0, total: 999, paymentMethod: 'cod', status: 'Placed', createdAt: new Date().toISOString() }
+      ],
+      coupons: [
+        { id: 'SAVE20', type: 'percentage', value: 20, minPurchase: 500 }
+      ],
+      dailyOffers: { active: false, expiry: '', desc: '' },
+      notifications: [],
+      settings: { logoUrl: "", codEnabled: true, locations: "Maharashtra, Gujarat, Mumbai", allowedStates: ["Gujarat", "Maharashtra"], pages: { terms: "", refund: "", contact: "" } }
+    };
+
+    window.storeData = MOCK_LOCAL_STATE;
+
+    // =========================================================================
+    // BLOGGER FIREBASE CONFIGURATION (FOR PRODUCTION / HOSTING)
+    // =========================================================================
+    // Agar aap is application ko Blogger ya kisi static domain pe host kar rahe hain,
+    // toh niche diye gaye keys (YOUR_API_KEY, etc.) ko apne real Firebase project 
+    // Credentials se badlein (replace karein).
+    window.BLOGGER_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCa3pv87v_ysBxEoIJrCyqexvLyJt0oU4Y",
+      authDomain: "abdu-s-cart-ltd.firebaseapp.com",
+      databaseURL: "https://abdu-s-cart-ltd-default-rtdb.firebaseio.com",
+      projectId: "abdu-s-cart-ltd",
+      storageBucket: "abdu-s-cart-ltd.firebasestorage.app",
+      messagingSenderId: "974708921526",
+      appId: "1:974708921526:web:d8d823f7449299ffa38217"
+    };
+
+    async function initPlatform() {
+      // 1. Check if the user has saved a custom Firebase configuration in localStorage
+      const savedUserConfig = localStorage.getItem('BLOGGER_FIREBASE_USER_CONFIG');
+      if (savedUserConfig) {
+        try {
+          const config = JSON.parse(savedUserConfig);
+          const app = initializeApp(config);
+          db = getDatabase(app);
+          auth = getAuth(app);
+          window.DATABASE_MODE = 'rtdb';
+          document.getElementById('sys-mode-tag').innerText = 'Firebase Connected';
+          document.getElementById('sys-mode-tag').className = 'text-[8px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black tracking-wide uppercase';
+          listenToFirebaseState();
+          return;
+        } catch (err) {
+          console.error("Local stored Firebase credentials error in admin panel, resetting:", err);
+          localStorage.removeItem('BLOGGER_FIREBASE_USER_CONFIG');
+        }
+      }
+
+      // 2. Try Workspace Environment Applet Configuration FIRST
+      try {
+        const response = await fetch('/firebase-applet-config.json');
+        if (response.ok) {
+          const config = await response.json();
+          const app = initializeApp(config);
+          db = getDatabase(app);
+          auth = getAuth(app);
+          window.DATABASE_MODE = 'rtdb';
+          document.getElementById('sys-mode-tag').innerText = 'Firebase Connected';
+          document.getElementById('sys-mode-tag').className = 'text-[8px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black tracking-wide uppercase';
+          listenToFirebaseState();
+          return;
+        }
+      } catch (err) {
+        console.warn("Workspace config fetch issue, trying static fallbacks...", err);
+      }
+
+      // 3. Fallback to hardcoded/manual Blogger layout config
+      if (window.BLOGGER_FIREBASE_CONFIG && window.BLOGGER_FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") {
+        try {
+          const app = initializeApp(window.BLOGGER_FIREBASE_CONFIG);
+          db = getDatabase(app);
+          auth = getAuth(app);
+          window.DATABASE_MODE = 'rtdb';
+          document.getElementById('sys-mode-tag').innerText = 'Firebase Connected';
+          document.getElementById('sys-mode-tag').className = 'text-[8px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black tracking-wide uppercase';
+          listenToFirebaseState();
+          return;
+        } catch (err) {
+          console.error("Blogger Inline Firebase config initialization failed:", err);
+        }
+      }
+
+      // 4. Fallback to offline mock state
+      loadOfflineMockState();
+    }
+
+    // STATE INITIALIZER MODULES
+    function loadOfflineMockState() {
+      const persisted = localStorage.getItem('abdu_scart_local_db');
+      if (persisted) {
+        window.storeData = JSON.parse(persisted);
+      } else {
+        localStorage.setItem('abdu_scart_local_db', JSON.stringify(MOCK_LOCAL_STATE));
+      }
+      // Check Mock Admin Login Persistence
+      const isLogged = localStorage.getItem('abdu_scart_admin_logged') === 'true';
+      if (isLogged) {
+        document.getElementById('auth-portal').classList.add('hidden');
+        document.getElementById('admin-layout').classList.remove('hidden');
+      }
+      renderAdminAll();
+    }
+
+    function syncOfflineState() {
+      if (window.DATABASE_MODE === 'offline') {
+        localStorage.setItem('abdu_scart_local_db', JSON.stringify(window.storeData));
+        renderAdminAll();
+      }
+    }
+
+    function listenToFirebaseState() {
+      // Dynamic onValue listeners from cloud DB node paths
+      onValue(ref(db, 'theme'), (snapshot) => {
+        if (snapshot.exists()) {
+          window.storeData.theme = snapshot.val();
+        } else {
+          window.storeData.theme = null;
+        }
+        renderAdminAll();
+      });
+      onValue(ref(db, 'categories'), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          window.storeData.categories = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        } else {
+          window.storeData.categories = [];
+        }
+        renderCategoriesTable();
+        renderProductCategoryDropdown();
+      });
+      onValue(ref(db, 'products'), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          window.storeData.products = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        } else {
+          window.storeData.products = [];
+        }
+        renderProducts();
+        updateDashboardAnalytics();
+      });
+      onValue(ref(db, 'sliders'), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          window.storeData.sliders = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        } else {
+          window.storeData.sliders = [];
+        }
+        renderSliders();
+      });
+      onValue(ref(db, 'support'), (snapshot) => {
+        if (snapshot.exists()) {
+          window.storeData.support = snapshot.val();
+        } else {
+          window.storeData.support = null;
+        }
+        setInputSupportFields();
+      });
+      onValue(ref(db, 'coupons'), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          window.storeData.coupons = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        } else {
+          window.storeData.coupons = [];
+        }
+        renderCoupons();
+      });
+      onValue(ref(db, 'dailyOffers'), (snapshot) => {
+        if (snapshot.exists()) {
+          window.storeData.dailyOffers = snapshot.val();
+        } else {
+          window.storeData.dailyOffers = null;
+        }
+        setFlashSaleInputs();
+      });
+
+      // Play Audio/Notification trigger when incoming orders are created!
+      let firstLoad = true;
+      onValue(ref(db, 'orders'), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const prevCount = window.storeData.orders.length;
+          window.storeData.orders = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+          
+          if (!firstLoad && window.storeData.orders.length > prevCount) {
+            triggerOrderSoundChime();
+            document.getElementById('orders-alert').classList.remove('hidden');
+          }
+          firstLoad = false;
+        } else {
+          window.storeData.orders = [];
+        }
+        renderOrders();
+        updateDashboardAnalytics();
+      });
+
+      // Real-time listener for registered customers
+      onValue(ref(db, 'users'), (snapshot) => {
+        if (snapshot.exists()) {
+          window.storeData.users = snapshot.val();
+        } else {
+          window.storeData.users = {};
+        }
+        renderCustomers();
+      });
+
+      // Real-time listener for global storefront configurations & editorial settings
+      onValue(ref(db, 'settings'), (snapshot) => {
+        if (snapshot.exists()) {
+          window.storeData.settings = snapshot.val();
+        } else {
+          window.storeData.settings = { logoUrl: "", codEnabled: true, pages: { terms: "", refund: "", contact: "" } };
+        }
+        setSettingsFields();
+      });
+
+      // Real-time listener for broadcast announcements/notifications
+      onValue(ref(db, 'notifications'), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          window.storeData.notifications = Object.keys(data).map(key => {
+            if (!data[key]) return null;
+            if (typeof data[key] !== 'object') return { id: key, message: data[key] };
+            return { id: key, ...data[key] };
+          }).filter(Boolean);
+        } else {
+          window.storeData.notifications = [];
+        }
+        renderAdminNotifications();
+      });
+
+      // Setup auth observer
+      onAuthStateChanged(auth, (user) => {
+        const portal = document.getElementById('auth-portal');
+        const layout = document.getElementById('admin-layout');
+        
+        let authorized = false;
+        if (window.DATABASE_MODE === 'rtdb') {
+          authorized = (user !== null);
+        } else {
+          authorized = (localStorage.getItem('abdu_scart_admin_logged') === 'true');
+        }
+
+        if (authorized) {
+          portal.classList.add('hidden');
+          layout.classList.remove('hidden');
+          renderAdminAll();
+        } else {
+          portal.classList.remove('hidden');
+          layout.classList.add('hidden');
+        }
+      });
+    }
+
+    // AUDIO CHIME ALERTS GENERATOR USING WEB AUDIO API
+    function triggerOrderSoundChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 chime frequency
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5 chime frequency
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+      } catch (err) {
+        console.warn("Audio Context blocked by browser permission policy.", err);
+      }
+    }
+
+    // TAB SWITCHER
+    window.setTab = function(tabName) {
+      window.ACTIVE_TAB = tabName;
+      document.querySelectorAll('.view-panel').forEach(block => block.classList.add('hidden'));
+      document.querySelectorAll('#admin-layout div button').forEach(btn => {
+        if (btn.id && btn.id.startsWith('nav-')) {
+          btn.className = "px-4 py-3 border-b-2 border-transparent hover:text-brand dark:hover:text-accent text-gray-500 cursor-pointer text-center flex-shrink-0";
+        }
+      });
+
+      const selectedView = document.getElementById(`view-${tabName}`);
+      if (selectedView) selectedView.classList.remove('hidden');
+      
+      const activeNav = document.getElementById(`nav-${tabName}`);
+      if (activeNav) {
+        activeNav.className = "px-4 py-3 border-b-2 border-brand dark:border-accent text-brand dark:text-accent font-extrabold cursor-pointer text-center flex-shrink-0";
+      }
+
+      if (tabName === 'orders') {
+        document.getElementById('orders-alert').classList.add('hidden');
+      }
+    };
+
+    // SECURE SIGN IN TERMINAL
+    window.attemptAdminSignIn = async function() {
+      const email = document.getElementById('auth-email').value.trim().toLowerCase();
+      const pass = document.getElementById('auth-pass').value.trim();
+
+      if (!email || !pass) {
+        alert("Enter system authorization credentials!");
+        return;
+      }
+
+      const loginButton = document.querySelector('button[onclick="attemptAdminSignIn()"]');
+      const originalText = loginButton ? loginButton.innerText : 'Decrypt System Access';
+      if (loginButton) loginButton.innerText = 'Authenticating...';
+
+      if (window.DATABASE_MODE === 'rtdb' && auth) {
+        try {
+          // Standard Firebase Authentication using whatever user/password the admin configured in the console.
+          await signInWithEmailAndPassword(auth, email, pass);
+          localStorage.setItem('abdu_scart_admin_logged', 'true');
+          document.getElementById('auth-portal').classList.add('hidden');
+          document.getElementById('admin-layout').classList.remove('hidden');
+          renderAdminAll();
+          if (loginButton) loginButton.innerText = originalText;
+        } catch (e) {
+          if (loginButton) loginButton.innerText = originalText;
+          console.error("Firebase Login Error:", e);
+          if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+            alert("Permission Denied: Invalid email or password. Please verify that this email and password are registered in your Firebase Authentication console.");
+          } else {
+            alert("Firebase Auth Error: " + e.message);
+          }
+        }
+      } else {
+        // Local Sandbox simulation Auth when offline/unconfigured
+        const isMasterAdmin = (email === 'raeenabdullah11@gmail.com' || email === 'alertcompany786@gmail.com') && pass === 'ABCD1234';
+        if (isMasterAdmin) {
+          localStorage.setItem('abdu_scart_admin_logged', 'true');
+          document.getElementById('auth-portal').classList.add('hidden');
+          document.getElementById('admin-layout').classList.remove('hidden');
+          renderAdminAll();
+          if (loginButton) loginButton.innerText = originalText;
+        } else {
+          if (loginButton) loginButton.innerText = originalText;
+          alert("Incorrect credentials! In Sandbox/Offline mode, use the default emergency credentials.");
+        }
+      }
+    };
+
+    window.attemptAdminGoogleSignIn = async function() {
+      if (window.DATABASE_MODE === 'rtdb' && auth) {
+        const provider = new GoogleAuthProvider();
+        try {
+          await signInWithPopup(auth, provider);
+          localStorage.setItem('abdu_scart_admin_logged', 'true');
+        } catch (e) {
+          alert("Admin Google Auth Error: " + e.message);
+        }
+      } else {
+        alert("Simulating Google OAuth: Signing in with default administrator profile (alertcompany786@gmail.com)...");
+        localStorage.setItem('abdu_scart_admin_logged', 'true');
+        document.getElementById('auth-portal').classList.add('hidden');
+        document.getElementById('admin-layout').classList.remove('hidden');
+        renderAdminAll();
+      }
+    };
+
+    window.adminSignOut = async function() {
+      localStorage.removeItem('abdu_scart_admin_logged');
+      if (window.DATABASE_MODE === 'rtdb' && auth) {
+        try {
+          await signOut(auth);
+        } catch(e) {
+          console.error("Firebase SignOut error:", e);
+        }
+      }
+      document.getElementById('auth-portal').classList.remove('hidden');
+      document.getElementById('admin-layout').classList.add('hidden');
+    };
+
+    // DYNAMIC FIREBASE SETUP & CUSTOM CONNECT HANDLERS FOR ADMIN PANEL
+    window.openFirebaseConfigDialog = function() {
+      const saved = localStorage.getItem('BLOGGER_FIREBASE_USER_CONFIG');
+      if (saved) {
+        document.getElementById('firebase-raw-config-textarea').value = JSON.stringify(JSON.parse(saved), null, 2);
+      } else {
+        document.getElementById('firebase-raw-config-textarea').value = '';
+      }
+      
+      const modal = document.getElementById('firebase-config-modal');
+      const card = document.getElementById('firebase-config-card');
+      modal.classList.add('show');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      card.classList.add('scale-100', 'opacity-100');
+      card.classList.remove('scale-95', 'opacity-0');
+    };
+
+    window.closeFirebaseConfigDialog = function() {
+      const modal = document.getElementById('firebase-config-modal');
+      const card = document.getElementById('firebase-config-card');
+      modal.classList.remove('show');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      card.classList.remove('scale-100', 'opacity-100');
+      card.classList.add('scale-95', 'opacity-0');
+    };
+
+    window.saveFirebaseConfig = function() {
+      const rawVal = document.getElementById('firebase-raw-config-textarea').value;
+      if (!rawVal.trim()) {
+        alert("Please paste your configuration first!");
+        return;
+      }
+      
+      let config = null;
+      try {
+        config = JSON.parse(rawVal.trim());
+      } catch (e) {
+        try {
+          const match = rawVal.match(/\{[\s\S]*\}/);
+          if (match) {
+            const extracted = {};
+            const lines = match[0].split('\n');
+            lines.forEach(line => {
+              const parts = line.match(/(apiKey|authDomain|databaseURL|projectId|storageBucket|messagingSenderId|appId)\s*:\s*["']([^"']+)["']/);
+              if (parts && parts.length >= 3) {
+                extracted[parts[1]] = parts[2];
+              }
+            });
+            if (extracted.apiKey && extracted.projectId) {
+              config = extracted;
+            }
+          }
+        } catch (err) {
+          console.error("Format conversion failed:", err);
+        }
+      }
+      
+      if (config && config.apiKey) {
+        localStorage.setItem('BLOGGER_FIREBASE_USER_CONFIG', JSON.stringify(config));
+        alert("Firebase Config Saved successfully! Connecting terminal to your database...");
+        window.location.reload();
+      } else {
+        alert("Error: Config invalid. Copy exactly from Firebase console settings.");
+      }
+    };
+
+    window.clearFirebaseConfig = function() {
+      if (confirm("Reset connection settings and disconnect admin panel from database?")) {
+        localStorage.removeItem('BLOGGER_FIREBASE_USER_CONFIG');
+        alert("Successfully disconnected! Reloading...");
+        window.location.reload();
+      }
+    };
+
+    // Recharts 7-Day Order Volume Analytics renderer
+    window.renderRechartsAnalytics = function() {
+      const container = document.getElementById('recharts-root');
+      if (!container) return;
+
+      if (typeof window.React === 'undefined' || typeof window.Recharts === 'undefined' || typeof window.ReactDOM === 'undefined') {
+        container.innerHTML = '<div class="text-xs text-center text-gray-400 py-12 font-semibold">Loading charts framework...</div>';
+        setTimeout(window.renderRechartsAnalytics, 200);
+        return;
+      }
+
+      const days = [];
+      const now = new Date();
+      // Generate last 7 days starting from 6 days ago to today
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(now.getDate() - i);
+        // Format ISO String yyyy-mm-dd
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const date = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${date}`;
+        
+        days.push({
+          dateStr: dateStr,
+          displayLabel: d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }),
+          count: 0,
+          sales: 0
+        });
+      }
+
+      // Populate counts from active orders
+      const orders = window.storeData.orders || [];
+      orders.forEach(order => {
+        if (!order.createdAt) return;
+        const orderDate = order.createdAt.split('T')[0];
+        const matchedDay = days.find(day => day.dateStr === orderDate);
+        if (matchedDay) {
+          matchedDay.count++;
+          matchedDay.sales += Number(order.total || 0);
+        }
+      });
+
+      const React = window.React;
+      const ReactDOM = window.ReactDOM;
+      const { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } = window.Recharts;
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const primaryColor = isDark ? '#F97316' : '#2563EB'; // accent vs brand
+      const gradientId = 'colorCountGradient';
+
+      // Custom dynamic tooltip
+      const CustomTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+          const data = payload[0].payload;
+          return React.createElement(
+            'div',
+            { className: 'bg-white dark:bg-slate-800 p-3 border border-gray-200 dark:border-slate-705 rounded-xl shadow-lg leading-tight text-xs' },
+            React.createElement('p', { className: 'text-[9px] font-bold text-gray-400 uppercase tracking-widest' }, data.displayLabel),
+            React.createElement('p', { className: 'text-xs font-black text-brand dark:text-accent mt-1' }, `Orders: ${data.count}`),
+            React.createElement('p', { className: 'text-[11px] text-emerald-600 font-bold mt-0.5 dark:text-emerald-400' }, `Sales: ₹${data.sales.toLocaleString()}`)
+          );
+        }
+        return null;
+      };
+
+      const element = React.createElement(
+        ResponsiveContainer,
+        { width: '100%', height: '100%' },
+        React.createElement(
+          AreaChart,
+          { data: days, margin: { top: 10, right: 10, left: -20, bottom: 0 } },
+          React.createElement(
+            'defs',
+            null,
+            React.createElement(
+              'linearGradient',
+              { id: gradientId, x1: '0', y1: '0', x2: '0', y2: '1' },
+              React.createElement('stop', { offset: '5%', stopColor: primaryColor, stopOpacity: 0.35 }),
+              React.createElement('stop', { offset: '95%', stopColor: primaryColor, stopOpacity: 0.0 })
+            )
+          ),
+          React.createElement(CartesianGrid, { strokeDasharray: '3 3', stroke: isDark ? '#334155' : '#e2e8f0', vertical: false }),
+          React.createElement(XAxis, { 
+            dataKey: 'displayLabel', 
+            axisLine: false, 
+            tickLine: false, 
+            tick: { fill: isDark ? '#94a3b8' : '#64748b', fontSize: 9, fontWeight: 600 } 
+          }),
+          React.createElement(YAxis, { 
+            allowDecimals: false,
+            axisLine: false, 
+            tickLine: false, 
+            tick: { fill: isDark ? '#94a3b8' : '#64748b', fontSize: 9, fontWeight: 600 } 
+          }),
+          React.createElement(Tooltip, { content: React.createElement(CustomTooltip) }),
+          React.createElement(Area, { 
+            type: 'monotone', 
+            dataKey: 'count', 
+            stroke: primaryColor, 
+            strokeWidth: 3, 
+            fillOpacity: 1, 
+            fill: `url(#${gradientId})` 
+          })
+        )
+      );
+
+      if (!window.rechartsRootNode) {
+        window.rechartsRootNode = ReactDOM.createRoot(container);
+      }
+      window.rechartsRootNode.render(element);
+    };
+
+    // DASHBOARD METRICS SUMMARY
+    function updateDashboardAnalytics() {
+      const totalEarned = (window.storeData.orders || []).reduce((sum, o) => o.status !== 'Canceled' ? sum + o.total : sum, 0);
+      const lowStockCount = (window.storeData.products || []).filter(p => !p.draft && (parseInt(p.stock) || 0) <= (parseInt(p.lowStockAlert) || 3)).length;
+      document.getElementById('stat-sales').innerText = '₹' + totalEarned.toLocaleString();
+      document.getElementById('stat-orders').innerText = (window.storeData.orders || []).length;
+      document.getElementById('stat-products').innerText = (window.storeData.products || []).length;
+      document.getElementById('stat-theme').innerText = (window.storeData.theme || {}).activeFestival || 'None';
+      
+      const lowStockEl = document.getElementById('stat-low-stock');
+      if (lowStockEl) lowStockEl.innerText = lowStockCount;
+      
+      const trendEl = document.getElementById('stat-low-stock-trend');
+      if (trendEl) {
+        // Mock a previous week count based on current count for UI demonstration
+        const prevWeekCount = Math.max(0, lowStockCount - 2); 
+        const diff = lowStockCount - prevWeekCount;
+        if (diff > 0) {
+          trendEl.innerHTML = `<span class="text-red-500"><i class="fas fa-arrow-up"></i> +${diff} vs last week</span>`;
+        } else if (diff < 0) {
+          trendEl.innerHTML = `<span class="text-emerald-500"><i class="fas fa-arrow-down"></i> ${diff} vs last week</span>`;
+        } else {
+          trendEl.innerHTML = `<i class="fas fa-minus"></i> No change`;
+        }
+      }
+
+      window.renderRechartsAnalytics();
+    }
+
+    // CUSTOMERS DIRECTORY RENDERER
+    function renderCustomers() {
+      const container = document.getElementById('customers-table-body');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const searchInputEl = document.getElementById('customers-search-input');
+      const query = searchInputEl ? searchInputEl.value.toLowerCase().trim() : '';
+
+      const usersObj = window.storeData.users || {};
+      let userUids = Object.keys(usersObj);
+
+      if (query) {
+        userUids = userUids.filter(uid => {
+          const profile = usersObj[uid]?.profile || {};
+          const nameMatch = (profile.displayName || '').toLowerCase().includes(query);
+          const emailMatch = (profile.email || '').toLowerCase().includes(query);
+          return nameMatch || emailMatch;
+        });
+      }
+
+      if (userUids.length === 0) {
+        container.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center py-8 text-gray-400">
+              ${query ? 'No customers match your search criteria.' : 'No registered customers found in real-time. Connect Google login in the client App to register profiles.'}
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      userUids.forEach(uid => {
+        const user = usersObj[uid] || {};
+        const profile = user.profile || { uid, displayName: 'Google User', email: '(No Email)', photoURL: '', lastLogin: '' };
+        const addresses = user.addresses || {};
+        
+        const photo = profile.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
+        const displayName = profile.displayName || 'Anonymous User';
+        const email = profile.email || 'N/A';
+        const lastLoginStr = profile.lastLogin ? new Date(profile.lastLogin).toLocaleString() : 'N/A';
+        const isBanned = user.banned === true;
+
+        // Render Addresses list
+        let addressesHTML = '<div class="flex flex-col gap-1 text-[10px] text-gray-500">';
+        const addressKeys = Object.keys(addresses);
+        if (addressKeys.length === 0) {
+          addressesHTML += '<span class="text-gray-400 font-normal italic">No saved addresses</span>';
+        } else {
+          addressKeys.forEach(addrId => {
+            const addr = addresses[addrId];
+            addressesHTML += `
+              <div class="border-b last:border-b-0 py-1 dark:border-slate-700">
+                <span class="font-extrabold text-[9px] text-brand dark:text-accent uppercase">${addr.label || 'Home'}:</span> 
+                ${addr.name}, ${addr.phone}, ${addr.address}, ${addr.city}, ${addr.state} - ${addr.pincode}
+              </div>
+            `;
+          });
+        }
+        addressesHTML += '</div>';
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/30 transition-colors duration-150";
+        
+        const banBtnLabel = isBanned ? 'Unban' : 'Ban';
+        const banBtnClass = isBanned
+          ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 dark:text-emerald-400'
+          : 'bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-950/40 dark:hover:bg-rose-905/40 dark:text-rose-400';
+        const banIcon = isBanned ? 'fas fa-user-check' : 'fas fa-user-slash';
+
+        tr.innerHTML = `
+          <td class="py-3 pr-2 flex items-center gap-2.5">
+            <img class="w-7 h-7 rounded-full object-cover border border-brand/20 dark:border-accent/30" src="${photo}" alt="Avatar">
+            <div class="flex flex-col">
+              <span class="font-black text-slate-900 dark:text-white flex items-center gap-1.5 break-all">
+                ${displayName}
+                ${isBanned ? '<span class="px-1.5 py-0.5 text-[8px] bg-rose-600 text-white rounded font-extrabold uppercase select-none animate-pulse">Banned</span>' : ''}
+              </span>
+              <span class="text-[8px] font-mono text-gray-450 tracking-wider">UID: ${uid}</span>
+            </div>
+          </td>
+          <td class="py-3 px-2 text-gray-600 dark:text-gray-300 font-mono text-[10px] break-all">${email}</td>
+          <td class="py-3 px-2 text-gray-400 text-[10px]">${lastLoginStr}</td>
+          <td class="py-3 pl-2 max-w-xs">${addressesHTML}</td>
+          <td class="py-3 pl-2 text-right">
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="window.toggleUserBan('${uid}', ${isBanned})" class="${banBtnClass} px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wide flex items-center gap-1 cursor-pointer transition-all duration-250 hover:scale-[1.03]" title="${isBanned ? 'Unban Account' : 'Ban Account'}">
+                <i class="${banIcon}"></i><span>${banBtnLabel}</span>
+              </button>
+              <button onclick="window.deleteUserRecord('${uid}')" class="bg-gray-100 hover:bg-red-600 hover:text-white text-gray-600 dark:bg-slate-700 dark:hover:bg-red-750 dark:text-gray-300 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wide cursor-pointer transition-all duration-250 hover:scale-[1.03]" title="Delete Customer Profile completely">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </td>
+        `;
+
+        container.appendChild(tr);
+      });
+    }
+
+    // USER MODERATION SYSTEM (BAN / UNBAN & DELETE)
+    window.toggleUserBan = async function(uid, currentlyBanned) {
+      const nextBanState = !currentlyBanned;
+      const confirmMsg = nextBanState
+        ? `🚨 ALERT:\nAre you sure you want to BAN the user account with UID:\n"${uid}"?\n\nThe user will be instantly locked out with an Access Suspended banner.`
+        : `Are you sure you want to UNBAN the user account with UID:\n"${uid}"?`;
+
+      if (!confirm(confirmMsg)) return;
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        try {
+          await update(ref(db, `users/${uid}`), { banned: nextBanState });
+          alert(`Success: User ban status updated securely in live database!`);
+        } catch (err) {
+          console.error("[MODERATION] RTDB Ban state update error:", err);
+          alert(`Error updating ban status: ${err.message}`);
+        }
+      } else {
+        // Offline Mock persistence sync
+        if (!window.storeData.users) window.storeData.users = {};
+        if (!window.storeData.users[uid]) window.storeData.users[uid] = {};
+        
+        window.storeData.users[uid].banned = nextBanState;
+        syncOfflineState();
+        renderCustomers();
+        alert(`Success: User ban status updated in Local Mock DB!`);
+      }
+    };
+
+    window.deleteUserRecord = async function(uid) {
+      const confirmDeletion = confirm(
+        `⚠️ WARNING - IRREVERSIBLE ACTION:\nAre you sure you want to COMPLETELY DESTRUCT the user record with UID:\n"${uid}"?\n\nThis deletes their profile cache, purchase stats, and saved billing addresses from the directory.`
+      );
+      if (!confirmDeletion) return;
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        try {
+          await remove(ref(db, `users/${uid}`));
+          alert(`Success: User record destroyed securely in live database!`);
+        } catch (err) {
+          console.error("[MODERATION] RTDB User deletion error:", err);
+          alert(`Error deleting user record: ${err.message}`);
+        }
+      } else {
+        // Offline Mock key removal
+        if (window.storeData.users && window.storeData.users[uid]) {
+          delete window.storeData.users[uid];
+          syncOfflineState();
+          renderCustomers();
+          alert(`Success: User record destroyed in Local Mock DB!`);
+        }
+      }
+    };
+
+    // INVENTORY MANAGEMENT MODULES
+    let editingProductId = null;
+    window.openProductForm = function(productId) {
+      editingProductId = productId;
+      renderProductCategoryDropdown();
+
+      const modal = document.getElementById('product-editor-modal');
+      const title = document.getElementById('prod-modal-title');
+      
+      if (productId) {
+        title.innerText = 'Modify Product Card';
+        const p = window.storeData.products.find(item => item.id === productId);
+        document.getElementById('prod-name').value = p.name;
+        document.getElementById('prod-sku').value = p.sku || '';
+        document.getElementById('prod-price').value = p.price;
+        document.getElementById('prod-offer').value = p.offerPrice || '';
+        document.getElementById('prod-category').value = p.category || '';
+        document.getElementById('prod-images').value = p.image || ''; // Simplify single link or lines
+        document.getElementById('prod-desc').value = p.description || '';
+        document.getElementById('prod-stock').value = p.stock || 10;
+        document.getElementById('prod-lowstock').value = p.lowStockAlert || 3;
+        document.getElementById('prod-tags').value = p.tags || '';
+        document.getElementById('prod-variants').value = p.variants || '';
+        document.getElementById('prod-paylink').value = p.paymentLink || '';
+        document.getElementById('prod-draft').checked = p.draft || false;
+        document.getElementById('prod-hidden').checked = p.hidden || false;
+        document.getElementById('prod-cod').checked = p.allowCod !== false; // Default true
+        document.getElementById('prod-delivery-date').value = p.deliveryDate || '';
+        document.getElementById('prod-delivery-year').value = p.deliveryYear || new Date().getFullYear();
+      } else {
+        title.innerText = 'Record New Product';
+        // Clear fields
+        document.getElementById('prod-name').value = '';
+        document.getElementById('prod-sku').value = '';
+        document.getElementById('prod-price').value = '';
+        document.getElementById('prod-offer').value = '';
+        document.getElementById('prod-category').value = '';
+        document.getElementById('prod-images').value = '';
+        document.getElementById('prod-desc').value = '';
+        document.getElementById('prod-stock').value = 10;
+        document.getElementById('prod-lowstock').value = 3;
+        document.getElementById('prod-tags').value = '';
+        document.getElementById('prod-variants').value = '';
+        document.getElementById('prod-paylink').value = '';
+        document.getElementById('prod-draft').checked = false;
+        document.getElementById('prod-hidden').checked = false;
+        document.getElementById('prod-cod').checked = true;
+        document.getElementById('prod-delivery-date').value = '';
+        document.getElementById('prod-delivery-year').value = new Date().getFullYear();
+      }
+
+      modal.classList.remove('hidden');
+    };
+
+    window.closeProductForm = function() {
+      document.getElementById('product-editor-modal').classList.add('hidden');
+    };
+
+    function renderProductCategoryDropdown() {
+      const select = document.getElementById('prod-category');
+      select.innerHTML = '<option value="">Choose active category...</option>';
+      (window.storeData.categories || []).forEach(cat => {
+        select.innerHTML += `<option value="${cat.id}">${cat.title}</option>`;
+      });
+    }
+
+    window.submitProduct = async function() {
+      const name = document.getElementById('prod-name').value.trim();
+      const sku = document.getElementById('prod-sku').value.trim();
+      const price = parseFloat(document.getElementById('prod-price').value);
+      const offerPrice = parseFloat(document.getElementById('prod-offer').value);
+      const category = document.getElementById('prod-category').value;
+      const image = document.getElementById('prod-images').value.trim();
+      const description = document.getElementById('prod-desc').value.trim();
+      const stock = parseInt(document.getElementById('prod-stock').value) || 0;
+      const lowStockAlert = parseInt(document.getElementById('prod-lowstock').value) || 3;
+      const tags = document.getElementById('prod-tags').value.trim();
+      const variants = document.getElementById('prod-variants').value.trim();
+      const paymentLink = document.getElementById('prod-paylink').value.trim();
+      const draft = document.getElementById('prod-draft').checked;
+      const hidden = document.getElementById('prod-hidden').checked;
+      const allowCod = document.getElementById('prod-cod').checked;
+      const deliveryDate = document.getElementById('prod-delivery-date').value.trim();
+      const deliveryYear = document.getElementById('prod-delivery-year').value.trim();
+
+      if (!name || isNaN(price)) {
+        alert("Product Name and core pricing fields are mandatory!");
+        return;
+      }
+
+      // Client-side SKU validation: Alphanumeric and Unique check
+      if (!sku) {
+        alert("🚨 SKU/Barcode field is required to uniquely register the product!");
+        return;
+      }
+
+      const skuRegex = /^[a-zA-Z0-9]+$/;
+      if (!skuRegex.test(sku)) {
+        alert("🚨 SKU/Barcode code must be strictly alphanumeric (letters and numbers only, with no spaces, hyphens, or special characters)!");
+        return;
+      }
+
+      const isSkuUnique = !(window.storeData.products || []).some(p => {
+        if (editingProductId && p.id === editingProductId) {
+          return false;
+        }
+        return p.sku && p.sku.toLowerCase() === sku.toLowerCase();
+      });
+
+      if (!isSkuUnique) {
+        alert(`🚨 Duplicate SKU conflict: SKU "${sku}" already exists in the storefront catalog inventory list! Please input a unique identifier.`);
+        return;
+      }
+
+      const payload = {
+        name, sku, price, category, image, description, stock, lowStockAlert, tags, variants, paymentLink, draft, hidden, allowCod, deliveryDate, deliveryYear
+      };
+      if (!isNaN(offerPrice)) payload.offerPrice = offerPrice;
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        const id = editingProductId || 'PROD_' + Date.now();
+        await set(ref(db, `products/${id}`), payload);
+      } else {
+        if (editingProductId) {
+          const idx = window.storeData.products.findIndex(p => p.id === editingProductId);
+          window.storeData.products[idx] = { id: editingProductId, ...payload };
+        } else {
+          payload.id = 'PROD_' + Date.now();
+          window.storeData.products.push(payload);
+        }
+        syncOfflineState();
+      }
+
+      closeProductForm();
+      alert("Storefront Catalog Inventory recorded flawlessly!");
+    };
+
+    // MODAL-BASED CONFIRMATION DIALOGUE FOR DELETE OPERATION
+    function showDeleteConfirmationModal(productName) {
+      return new Promise((resolve) => {
+        const modalContainer = document.createElement('div');
+        modalContainer.id = 'delete-confirm-modal';
+        modalContainer.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300';
+        
+        modalContainer.innerHTML = `
+          <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 transform scale-95 transition-transform duration-300 flex flex-col gap-4 text-center">
+            <div class="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400 text-3xl">
+              <i class="fas fa-exclamation-triangle animate-bounce"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-slate-800 dark:text-white">Delete Catalog Record?</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3">Are you sure you want to completely erase <b>"${productName}"</b> from the storefront? This action cannot be undone.</p>
+            </div>
+            <div class="flex gap-3 mt-2">
+              <button id="btn-cancel-delete" class="flex-1 py-2.5 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-650 dark:text-slate-200 font-bold rounded-xl text-xs cursor-pointer">
+                Cancel
+              </button>
+              <button id="btn-confirm-delete" class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs cursor-pointer">
+                Permanently Erase
+              </button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modalContainer);
+        
+        document.getElementById('btn-cancel-delete').addEventListener('click', () => {
+          modalContainer.remove();
+          resolve(false);
+        });
+        
+        document.getElementById('btn-confirm-delete').addEventListener('click', () => {
+          modalContainer.remove();
+          resolve(true);
+        });
+      });
+    }
+
+    // ERASE SEQUENCE PROGRESS INDICATOR
+    function showDeleteLoadingIndicator() {
+      const loadingContainer = document.createElement('div');
+      loadingContainer.id = 'delete-loading-indicator';
+      loadingContainer.className = 'fixed inset-0 z-50 flex flex-col items-center justify-center p-4 bg-black/50 backdrop-blur-xs text-white';
+      loadingContainer.innerHTML = `
+        <div class="bg-slate-900/90 shadow-2xl rounded-2xl p-6 flex flex-col items-center gap-4 border border-slate-750 max-w-xs text-center">
+          <div class="w-10 h-10 border-4 border-t-white border-white/25 rounded-full animate-spin"></div>
+          <div>
+            <p class="text-xs font-black uppercase tracking-widest text-slate-200">Erase Sequence Active</p>
+            <p class="text-[10px] text-slate-400 mt-1">Removing product from cloud inventory database...</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(loadingContainer);
+    }
+
+    function hideDeleteLoadingIndicator() {
+      const indicator = document.getElementById('delete-loading-indicator');
+      if (indicator) indicator.remove();
+    }
+
+    // SUCCESS NOTIFICATION TOAST
+    function showDeleteSuccessToast(message = "Product deleted successfully!") {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-5 right-5 z-50 bg-emerald-600 text-white text-xs font-bold py-3 px-5 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-10 opacity-0 transition-all duration-350 border border-emerald-500';
+      toast.innerHTML = `<i class="fas fa-check-circle text-sm"></i> <span>${message}</span>`;
+      document.body.appendChild(toast);
+      
+      // Trigger animation
+      setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+      }, 10);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        toast.style.transform = 'translateY(10px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 350);
+      }, 3000);
+    }
+
+    window.deleteProd = async function(id) {
+      console.log("Delete button clicked");
+      console.log("Product ID:", id);
+
+      const targetProduct = (window.storeData.products || []).find(p => p.id === id);
+      const productName = targetProduct ? targetProduct.name : "Selected Product";
+
+      // A. Proper confirmation dialog before deletion
+      const confirmed = await showDeleteConfirmationModal(productName);
+      if (!confirmed) {
+        console.log("Delete action aborted by user.");
+        return;
+      }
+
+      // B. Loading indicator during deletion
+      showDeleteLoadingIndicator();
+
+      const dbPath = `products/${id}`;
+      console.log("Database Path:", dbPath);
+
+      try {
+        if (window.DATABASE_MODE === 'rtdb') {
+          await remove(ref(db, dbPath));
+          console.log("Delete Success");
+          hideDeleteLoadingIndicator();
+          
+          // C. Success notification after deletion
+          showDeleteSuccessToast(`Product "${productName}" successfully deleted!`);
+          
+          // D. Automatic UI refresh is handled automatically via Realtime DB's onValue listener.
+        } else {
+          window.storeData.products = window.storeData.products.filter(p => p.id !== id);
+          syncOfflineState();
+          
+          console.log("Delete Success (Offline Mode)");
+          hideDeleteLoadingIndicator();
+          
+          showDeleteSuccessToast(`Product "${productName}" successfully deleted locally.`);
+          
+          // Force manual UI update for offline mode
+          renderProducts();
+          updateDashboardAnalytics();
+        }
+      } catch (error) {
+        console.error("Delete Error:", error);
+        hideDeleteLoadingIndicator();
+        
+        let customMessage = error.message;
+        if (error.message && error.message.includes("PERMISSION_DENIED")) {
+          customMessage = "Permission Denied. Only authenticated Admins are allowed to delete products. Please check if you are logged in with an admin and if your Firebase Database Rules allow writing/deleting to 'products'.";
+        }
+        
+        alert(`Failed to delete product: ${customMessage}\n\nIf this is a permission error, please check your Firebase Realtime Database Rules.`);
+      }
+    };
+
+    function renderProducts() {
+      const container = document.getElementById('product-list-container');
+      container.innerHTML = '';
+      
+      const list = window.storeData.products || [];
+      if (list.length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-12 text-xs">No product entries recorded. Click 'Record New' above.</div>`;
+        return;
+      }
+
+      list.forEach(p => {
+        const hasOffer = p.offerPrice && p.offerPrice < p.price;
+        const isChecked = (window.selectedBulkProductIds || []).includes(p.id);
+        const isRecentlyUpdated = (window.tempHighlightedProductIds || []).includes(p.id);
+        const card = document.createElement('div');
+        card.id = `prod-card-${p.id}`;
+        card.className = `bg-white p-3 rounded-2xl shadow-sm border flex items-center gap-3 relative dark:bg-slate-800 dark:border-slate-700 transition-all duration-350 ${p.draft ? 'opacity-65' : ''} ${isRecentlyUpdated ? 'bulk-stock-success-pulse' : ''}`;
+        card.innerHTML = `
+          <div class="flex items-center justify-center pl-1">
+            <input type="checkbox" data-prod-id="${p.id}" ${isChecked ? 'checked' : ''} onchange="window.toggleBulkSelectItem('${p.id}', this.checked)" class="bulk-prod-checkbox w-4 h-4 rounded text-brand focus:ring-brand border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 cursor-pointer">
+          </div>
+          <img class="w-14 h-14 bg-gray-100 dark:bg-slate-900 object-contain rounded" src="${p.image || 'https://via.placeholder.com/150'}">
+          <div class="flex-grow">
+            <h4 class="text-xs font-bold leading-tight line-clamp-1">${p.name}</h4>
+            <div class="text-[9px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
+              <span class="tracking-wider uppercase text-[8px] bg-slate-100 dark:bg-slate-700 select-none px-1 py-0.2 rounded text-slate-800 dark:text-slate-200">SKU</span> <span class="font-mono text-gray-600 dark:text-gray-300">${p.sku || 'N/A'}</span>
+            </div>
+            <div class="text-[10px] mt-1 space-x-2">
+              <span class="font-extrabold text-brand dark:text-accent">₹${hasOffer ? p.offerPrice : p.price}</span>
+              ${hasOffer ? `<span class="line-through text-gray-400">₹${p.price}</span>` : ''}
+              <span class="bg-gray-100 text-gray-500 font-bold px-1 rounded uppercase text-[8px] dark:bg-slate-700 dark:text-gray-300">STOCK: ${p.stock || 0}</span>
+              ${p.draft ? `<span class="bg-amber-100 text-amber-700 font-bold px-1 rounded uppercase text-[8px]">Draft</span>` : ''}
+              ${p.hidden ? `<span class="bg-purple-100 text-purple-700 font-bold px-1 rounded uppercase text-[8px]">Hidden</span>` : ''}
+              ${p.deliveryDate ? `<span class="bg-emerald-100 text-emerald-700 font-bold px-1 rounded uppercase text-[8px] dark:bg-emerald-950/40 dark:text-emerald-300">Delivery: ${p.deliveryDate} ${p.deliveryYear || ''}</span>` : ''}
+            </div>
+          </div>
+          <div class="flex gap-2.5">
+            <button onclick="openProductForm('${p.id}')" class="w-7 h-7 bg-brand/10 hover:bg-brand/25 text-brand dark:text-white rounded-lg flex items-center justify-center text-xs cursor-pointer"><i class="fas fa-edit"></i></button>
+            <button onclick="deleteProd('${p.id}')" class="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center text-xs cursor-pointer"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      // Synchronize selection count text and Select All checkbox after rendering
+      window.updateBulkBarUI();
+    }
+
+    // CATEGORY CRUD LAYOUT
+    let editingCategoryId = null;
+    window.openCategoryForm = function(catId) {
+      editingCategoryId = catId;
+      const modal = document.getElementById('category-editor-modal');
+      const title = document.getElementById('cat-modal-title');
+      
+      if (catId) {
+        title.innerText = 'Modify Category Node';
+        const cat = window.storeData.categories.find(c => c.id === catId);
+        document.getElementById('cat-title').value = cat.title;
+        document.getElementById('cat-icon').value = cat.icon || '';
+        document.getElementById('cat-image').value = cat.image || '';
+        document.getElementById('cat-order').value = cat.order || 1;
+        document.getElementById('cat-featured').checked = cat.featured || false;
+        document.getElementById('cat-hidden').checked = cat.hidden || false;
+      } else {
+        title.innerText = 'Create Category Node';
+        document.getElementById('cat-title').value = '';
+        document.getElementById('cat-icon').value = 'fas fa-mobile-alt';
+        document.getElementById('cat-image').value = '';
+        document.getElementById('cat-order').value = 1;
+        document.getElementById('cat-featured').checked = false;
+        document.getElementById('cat-hidden').checked = false;
+      }
+      modal.classList.remove('hidden');
+    };
+
+    window.closeCategoryForm = function() {
+      document.getElementById('category-editor-modal').classList.add('hidden');
+    };
+
+    window.submitCategory = async function() {
+      const title = document.getElementById('cat-title').value.trim();
+      const icon = document.getElementById('cat-icon').value.trim();
+      const image = document.getElementById('cat-image').value.trim();
+      const order = parseInt(document.getElementById('cat-order').value) || 1;
+      const featured = document.getElementById('cat-featured').checked;
+      const hidden = document.getElementById('cat-hidden').checked;
+
+      if (!title) {
+        alert("Please specify a category node title!");
+        return;
+      }
+
+      const payload = { title, icon, image, order, featured, hidden };
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        const id = editingCategoryId || 'CAT_' + Date.now();
+        await set(ref(db, `categories/${id}`), payload);
+      } else {
+        if (editingCategoryId) {
+          const idx = window.storeData.categories.findIndex(c => c.id === editingCategoryId);
+          window.storeData.categories[idx] = { id: editingCategoryId, ...payload };
+        } else {
+          payload.id = 'CAT_' + Math.floor(Math.random() * 900 + 100);
+          window.storeData.categories.push(payload);
+        }
+        syncOfflineState();
+      }
+
+      closeCategoryForm();
+      alert("Category index tree updated!");
+    };
+
+    window.deleteCat = async function(id) {
+      if (!confirm("Are you sure you want to completely destroy this category node?")) return;
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await remove(ref(db, `categories/${id}`));
+      } else {
+        window.storeData.categories = window.storeData.categories.filter(c => c.id !== id);
+        syncOfflineState();
+      }
+    };
+
+    function renderCategoriesTable() {
+      const container = document.getElementById('categories-list-container');
+      container.innerHTML = '';
+      
+      const list = window.storeData.categories || [];
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-6 text-xs font-semibold">No category nodes registered.</div>`;
+        return;
+      }
+
+      list.forEach(c => {
+        const row = document.createElement('div');
+        row.className = "flex justify-between items-center bg-white border p-3 rounded-xl shadow-xs dark:bg-slate-800 dark:border-slate-700";
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded border border-slate-200 text-gray-700 flex items-center justify-center overflow-hidden bg-white dark:bg-slate-700 dark:border-slate-600 flex-shrink-0">
+              ${c.image ? `<img class="w-full h-full object-cover" src="${c.image}" alt="">` : `<i class="${c.icon || 'fas fa-tag'} text-xs"></i>`}
+            </div>
+            <div class="leading-none">
+              <span class="font-bold text-xs">${c.title}</span><br>
+              <span class="text-[8px] text-gray-400 font-extrabold uppercase">ORDER: ${c.order || 0}</span>
+              ${c.featured ? `<span class="bg-emerald-100 text-emerald-800 text-[8px] font-bold ml-1.5 px-1 py-0.5 rounded">Featured</span>` : ''}
+              ${c.hidden ? `<span class="bg-red-100 text-red-800 text-[8px] font-bold ml-1.5 px-1 py-0.5 rounded">Hidden</span>` : ''}
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openCategoryForm('${c.id}')" class="px-2.5 py-1.5 bg-brand/10 text-brand dark:text-white rounded-md text-xs cursor-pointer"><i class="fas fa-edit"></i></button>
+            <button onclick="deleteCat('${c.id}')" class="px-2.5 py-1.5 bg-red-100 text-red-600 rounded-md text-xs cursor-pointer"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // SLIDER CAMPAIGN EDITOR
+    let editingSliderId = null;
+    window.openSliderForm = function(slideId) {
+      editingSliderId = slideId;
+      const modal = document.getElementById('slider-editor-modal');
+      
+      if (slideId) {
+        document.getElementById('slider-modal-title').innerText = 'Modify Promotion Banner';
+        const s = window.storeData.sliders.find(item => item.id === slideId);
+        document.getElementById('slide-title').value = s.title || '';
+        document.getElementById('slide-subtitle').value = s.subtitle || '';
+        document.getElementById('slide-button').value = s.buttonText || 'Explore Now';
+        document.getElementById('slide-link').value = s.link || '';
+        document.getElementById('slide-image').value = s.image || '';
+        document.getElementById('slide-end').value = s.scheduleEnd || '';
+      } else {
+        document.getElementById('slider-modal-title').innerText = 'Record Promotional Banner';
+        document.getElementById('slide-title').value = '';
+        document.getElementById('slide-subtitle').value = '';
+        document.getElementById('slide-button').value = 'Explore Now';
+        document.getElementById('slide-link').value = '';
+        document.getElementById('slide-image').value = '';
+        document.getElementById('slide-end').value = '';
+      }
+      modal.classList.remove('hidden');
+    };
+
+    window.closeSliderForm = function() {
+      document.getElementById('slider-editor-modal').classList.add('hidden');
+    };
+
+    window.submitSlider = async function() {
+      const title = document.getElementById('slide-title').value.trim();
+      const subtitle = document.getElementById('slide-subtitle').value.trim();
+      const buttonText = document.getElementById('slide-button').value.trim();
+      const link = document.getElementById('slide-link').value.trim();
+      const image = document.getElementById('slide-image').value.trim();
+      const scheduleEnd = document.getElementById('slide-end').value;
+
+      if (!image) {
+        alert("Banner link image URL is mandatory!");
+        return;
+      }
+
+      const payload = { title, subtitle, buttonText, link, image, scheduleEnd, type: 'hero', order: 1 };
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        const id = editingSliderId || 'SLIDE_' + Date.now();
+        await set(ref(db, `sliders/${id}`), payload);
+      } else {
+        if (editingSliderId) {
+          const idx = window.storeData.sliders.findIndex(s => s.id === editingSliderId);
+          window.storeData.sliders[idx] = { id: editingSliderId, ...payload };
+        } else {
+          payload.id = 'SLIDE_' + Date.now();
+          window.storeData.sliders.push(payload);
+        }
+        syncOfflineState();
+      }
+
+      closeSliderForm();
+      alert("Promotional Home display catalog updated!");
+    };
+
+    window.deleteSlider = async function(id) {
+      if (!confirm("Are you sure?")) return;
+      if (window.DATABASE_MODE === 'rtdb') {
+        await remove(ref(db, `sliders/${id}`));
+      } else {
+        window.storeData.sliders = window.storeData.sliders.filter(s => s.id !== id);
+        syncOfflineState();
+      }
+    };
+
+    function renderSliders() {
+      const container = document.getElementById('sliders-list');
+      container.innerHTML = '';
+      
+      const list = window.storeData.sliders || [];
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-4 text-xs font-semibold">No multi-image banner components registered.</div>`;
+        return;
+      }
+
+      list.forEach(s => {
+        const row = document.createElement('div');
+        row.className = "flex justify-between items-center bg-white border p-3 rounded-2xl shadow-xs dark:bg-slate-800 dark:border-slate-700";
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="${s.image}" class="w-10 h-10 object-cover rounded">
+            <div class="leading-none text-xs">
+              <span class="font-extrabold">${s.title || 'Untitled Banner'}</span><br>
+              <span class="text-[9px] text-gray-400">Target action: ${s.link || 'Home'}</span>
+            </div>
+          </div>
+          <div class="flex gap-1.5">
+            <button onclick="openSliderForm('${s.id}')" class="px-2 py-1.5 bg-brand/10 text-brand rounded-md"><i class="fas fa-edit"></i></button>
+            <button onclick="deleteSlider('${s.id}')" class="px-2 py-1.5 bg-red-100 text-red-600 rounded-md"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // PROMO COUPON WORKERS
+    window.submitCoupon = async function() {
+      const code = document.getElementById('promo-code').value.trim().toUpperCase();
+      const type = document.getElementById('promo-type').value;
+      const value = parseFloat(document.getElementById('promo-value').value);
+      const minPurchase = parseFloat(document.getElementById('promo-min').value) || 0;
+
+      if (!code || isNaN(value)) {
+        alert("Promo code and discount values are mandatory!");
+        return;
+      }
+
+      const payload = { type, value, minPurchase };
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await set(ref(db, `coupons/${code}`), payload);
+      } else {
+        const existingIdx = window.storeData.coupons.findIndex(c => c.id === code);
+        if (existingIdx !== -1) {
+          window.storeData.coupons[existingIdx] = { id: code, ...payload };
+        } else {
+          window.storeData.coupons.push({ id: code, ...payload });
+        }
+        syncOfflineState();
+      }
+
+      // Clear fields
+      document.getElementById('promo-code').value = '';
+      document.getElementById('promo-value').value = '';
+      document.getElementById('promo-min').value = '';
+
+      alert("Coupon voucher state synchronized!");
+    };
+
+    window.deleteCoupon = async function(code) {
+      if (!confirm("Are you sure?")) return;
+      if (window.DATABASE_MODE === 'rtdb') {
+        await remove(ref(db, `coupons/${code}`));
+      } else {
+        window.storeData.coupons = window.storeData.coupons.filter(c => c.id !== code);
+        syncOfflineState();
+      }
+    };
+
+    window.publishBroadcastNotification = async function() {
+      const title = document.getElementById('notif-title').value.trim();
+      const message = document.getElementById('notif-message').value.trim();
+      const image = document.getElementById('notif-image-url').value.trim();
+      const expiryVal = document.getElementById('notif-expiry-date').value;
+
+      if (!title || !message) {
+        alert("Please complete matching Title and Message Content fields!");
+        return;
+      }
+
+      const notifId = 'notif_' + Date.now();
+      const payload = {
+        id: notifId,
+        title,
+        message,
+        image: image || "",
+        createdAt: new Date().toISOString(),
+        expiryAt: expiryVal ? new Date(expiryVal).toISOString() : ""
+      };
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        try {
+          await set(ref(db, `notifications/${notifId}`), payload);
+        } catch (err) {
+          console.error("RTDB write error:", err);
+          if (!window.storeData.notifications) window.storeData.notifications = [];
+          window.storeData.notifications.push(payload);
+          syncOfflineState();
+        }
+      } else {
+        if (!window.storeData.notifications) window.storeData.notifications = [];
+        window.storeData.notifications.push(payload);
+        syncOfflineState();
+      }
+
+      // Clear input fields
+      document.getElementById('notif-title').value = '';
+      document.getElementById('notif-message').value = '';
+      document.getElementById('notif-image-url').value = '';
+      document.getElementById('notif-expiry-date').value = '';
+
+      alert("Announcement notification with scheduled expiry broadcasted successfully!");
+      renderAdminNotifications();
+    };
+
+    window.deleteBroadcastNotification = async function(id) {
+      if (!confirm("Are you sure you want to completely destroy this notification? It will also be removed for all users.")) return;
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        try {
+          await remove(ref(db, `notifications/${id}`));
+        } catch (err) {
+          console.error("Firebase deletion error:", err);
+          if (window.storeData.notifications) {
+            window.storeData.notifications = window.storeData.notifications.filter(n => n.id !== id);
+          }
+          syncOfflineState();
+        }
+      } else {
+        if (window.storeData.notifications) {
+          window.storeData.notifications = window.storeData.notifications.filter(n => n.id !== id);
+        }
+        syncOfflineState();
+      }
+
+      renderAdminNotifications();
+    };
+
+    window.renderAdminNotifications = function() {
+      const container = document.getElementById('admin-notifications-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const list = window.storeData.notifications || [];
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-gray-400">
+            No active notification broadcasts. Use the form to send your first message.
+          </div>
+        `;
+        return;
+      }
+
+      // Sort descending by timestamp
+      const sorted = [...list].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+      sorted.forEach(n => {
+        const div = document.createElement('div');
+        div.className = "flex flex-col gap-2 p-3 bg-gray-50 border rounded-xl dark:bg-slate-700 dark:border-slate-600 relative overflow-hidden";
+        
+        let imgHtml = '';
+        if (n.image) {
+          imgHtml = `<img src="${n.image}" class="w-full h-24 object-cover rounded-lg my-1" referrerPolicy="no-referrer">`;
+        }
+
+        const dateStr = n.createdAt ? new Date(n.createdAt).toLocaleDateString(undefined, { hour: '2-digit', minute: '2-digit' }) : 'Unknown Date';
+        
+        // Expiry calculation & badge
+        let expiryBadge = '';
+        let isExpired = false;
+        if (n.expiryAt) {
+          const expTime = new Date(n.expiryAt);
+          const now = new Date();
+          isExpired = now > expTime;
+          const expStr = expTime.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          if (isExpired) {
+            expiryBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400">EXPIRED (passed ${expStr})</span>`;
+          } else {
+            expiryBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">ACTIVE (expires ${expStr})</span>`;
+          }
+        } else {
+          expiryBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-blue-100 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">PERMANENT ANNOUNCEMENT</span>`;
+        }
+
+        div.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-bold text-xs text-brand dark:text-accent flex items-center gap-1.5 flex-wrap">${n.title} ${expiryBadge}</h4>
+              <span class="text-[9px] text-gray-400 font-semibold">Sent: ${dateStr}</span>
+            </div>
+            <button onclick="deleteBroadcastNotification('${n.id}')" class="text-red-500 hover:text-red-700 p-1 cursor-pointer" title="Delete Announcement"><i class="fas fa-trash-alt"></i></button>
+          </div>
+          <p class="text-[11px] text-gray-600 dark:text-slate-300 leading-relaxed font-semibold">${n.message}</p>
+          ${imgHtml}
+        `;
+        container.appendChild(div);
+      });
+    };
+
+    function renderCoupons() {
+      const container = document.getElementById('coupons-list');
+      container.innerHTML = '';
+      
+      const list = window.storeData.coupons || [];
+      if (list.length === 0) {
+        container.innerHTML = `<span class="text-gray-400 leading-none">No active promo codes authorized.</span>`;
+        return;
+      }
+
+      list.forEach(c => {
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center bg-gray-50 border p-2 rounded-lg dark:bg-slate-700 dark:border-slate-600";
+        div.innerHTML = `
+          <span>🎟 <strong>${c.id}</strong> - Discounts: ${c.type === 'percentage' ? c.value + '%' : '₹' + c.value} (Min spend: ₹${c.minPurchase || 0})</span>
+          <button onclick="deleteCoupon('${c.id}')" class="text-red-500 hover:text-red-700 cursor-pointer"><i class="fas fa-trash"></i></button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // FLASH COUNTER WORKER
+    window.deployFlashCounter = async function() {
+      const active = document.getElementById('flash-active').checked;
+      const expiry = document.getElementById('flash-expiry').value;
+      const desc = document.getElementById('flash-desc').value.trim();
+
+      const payload = { active, expiry, desc };
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await set(ref(db, 'dailyOffers'), payload);
+      } else {
+        window.storeData.dailyOffers = payload;
+        syncOfflineState();
+      }
+      alert("Daily Flash Counter state published!");
+    };
+
+    function setFlashSaleInputs() {
+      const data = window.storeData.dailyOffers || {};
+      document.getElementById('flash-active').checked = data.active || false;
+      document.getElementById('flash-expiry').value = data.expiry || '';
+      document.getElementById('flash-desc').value = data.desc || '';
+    }
+
+    // FESTIVAL THEME SETTINGS WRITER
+    window.deployFestivalSettings = async function() {
+      const activeFestival = document.getElementById('setting-festival').value;
+      const payload = { activeFestival, customColors: { primary: '#2563EB', accent: '#F97316' } };
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await set(ref(db, 'theme'), payload);
+      } else {
+        window.storeData.theme = payload;
+        syncOfflineState();
+      }
+      alert(`Site-wide active holiday context updated to: ${activeFestival}`);
+    };
+
+    // SAVE SUPPORT CHANNELS
+    window.saveSupportSettings = async function() {
+      const whatsapp = document.getElementById('sup-whatsapp').value.trim();
+      const instagram = document.getElementById('sup-instagram').value.trim();
+      const phone = document.getElementById('sup-tel').value.trim();
+      const email = document.getElementById('sup-email').value.trim();
+
+      const payload = { whatsapp, instagram, phone, email };
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await set(ref(db, 'support'), payload);
+      } else {
+        window.storeData.support = payload;
+        syncOfflineState();
+      }
+      alert("Helpdesk support channel dials synchronised!");
+    };
+
+    function setInputSupportFields() {
+      const s = window.storeData.support || {};
+      document.getElementById('sup-whatsapp').value = s.whatsapp || '';
+      document.getElementById('sup-instagram').value = s.instagram || '';
+      document.getElementById('sup-tel').value = s.phone || '';
+      document.getElementById('sup-email').value = s.email || '';
+    }
+
+    // MAIN ORDERS MANAGEMENT SYSTEM (Realtime Status Updates & Timeline changes)
+    window.updateOrderStatus = async function(orderId, nextStatus) {
+      const idx = window.storeData.orders.findIndex(o => o.id === orderId || (o.id === undefined && orderId === 'REALTIME_TRK'));
+      const order = window.storeData.orders[idx];
+      if (!order) return;
+
+      order.status = nextStatus;
+      if (!order.timeline) order.timeline = [];
+      order.timeline.push({
+        status: nextStatus,
+        timestamp: new Date().toISOString(),
+        note: `Order status shifted to ${nextStatus} by verifying system operator.`
+      });
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        const cleanId = order.id || orderId;
+        await set(ref(db, `orders/${cleanId}`), order);
+      } else {
+        syncOfflineState();
+      }
+      alert(`Successful order verification! Status updated to: ${nextStatus}`);
+    };
+
+    window.addOrderTimelineNote = async function(orderId) {
+      const idx = window.storeData.orders.findIndex(o => o.id === orderId);
+      const order = window.storeData.orders[idx];
+      if (!order) return;
+
+      const note = prompt("Enter verification timeline tracking commentary/notes:");
+      if (!note) return;
+
+      if (!order.timeline) order.timeline = [];
+      order.timeline.push({
+        status: order.status,
+        timestamp: new Date().toISOString(),
+        note: note
+      });
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await set(ref(db, `orders/${orderId}`), order);
+      } else {
+        syncOfflineState();
+      }
+      alert("Timeline commentary tracked successfully!");
+    };
+
+    window.markPaymentCompleted = async function(orderId) {
+      const idx = window.storeData.orders.findIndex(o => o.id === orderId);
+      const order = window.storeData.orders[idx];
+      if (!order) return;
+
+      order.paymentStatus = 'Completed';
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await set(ref(db, `orders/${orderId}`), order);
+      } else {
+        syncOfflineState();
+      }
+      alert("Paid verification marked successfully!");
+    };
+
+    function renderOrders() {
+      const container = document.getElementById('orders-dashboard-grid');
+      container.innerHTML = '';
+
+      const list = window.storeData.orders || [];
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-12 text-xs font-semibold">No customer purchase tracking tickets live in database.</div>`;
+        return;
+      }
+
+      list.forEach(order => {
+        const orderId = order.id || 'REALTIME_TRK';
+        const dateStr = new Date(order.createdAt).toLocaleString();
+        const isSelected = (window.selectedOrderIds || []).includes(orderId);
+        
+        // Pulse highlight effects for Confirmed and Shipped operator visibility
+        let cardPulseClass = "";
+        let badgeColorClass = "bg-blue-50 text-brand dark:bg-slate-700 dark:text-accent";
+        let badgeIcon = "";
+        if (order.status === 'Confirmed') {
+          cardPulseClass = " status-pulse-confirmed dark:border-blue-500/50";
+          badgeColorClass = "bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 animate-pulse";
+          badgeIcon = '<i class="fas fa-check-circle text-blue-600 dark:text-blue-400 mr-1"></i>';
+        } else if (order.status === 'Shipped') {
+          cardPulseClass = " status-pulse-shipped dark:border-orange-500/100";
+          badgeColorClass = "bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300 animate-pulse";
+          badgeIcon = '<i class="fas fa-truck text-orange-600 dark:text-orange-400 mr-1"></i>';
+        }
+
+        let itemsList = '';
+        order.items.forEach(item => {
+          itemsList += `
+            <div class="flex justify-between text-[10px] bg-slate-50 dark:bg-slate-700/50 p-1.5 rounded-lg border dark:border-slate-600 font-semibold leading-tight">
+              <span>📦 ${item.name} ${item.selectedVariant ? `[VAR: ${item.selectedVariant}]` : ''}</span>
+              <span>x${item.quantity} (₹${item.price})</span>
+            </div>
+          `;
+        });
+
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl p-4 shadow-sm border dark:bg-slate-800 dark:border-slate-700 flex flex-col gap-3" + cardPulseClass;
+        card.innerHTML = `
+          <!-- Row header -->
+          <div class="flex justify-between items-start border-b pb-2 dark:border-slate-600 text-[10px] font-bold">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" data-order-id="${orderId}" ${isSelected ? 'checked' : ''} onchange="window.toggleOrderSelection('${orderId}', this.checked)" class="order-select-checkbox w-4 h-4 rounded text-brand focus:ring-brand border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 cursor-pointer">
+              <div>
+                <span class="text-brand dark:text-accent font-black">ID: ${orderId}</span>
+                <p class="text-gray-400 text-[9px] font-medium mt-0.5">${dateStr}</p>
+              </div>
+            </div>
+            <div class="flex gap-2.5">
+              <span class="px-2 py-0.5 rounded tracking-wide uppercase font-extrabold flex items-center ${badgeColorClass}">${badgeIcon}${order.status}</span>
+              <span class="px-2 py-0.5 rounded tracking-wide uppercase font-extrabold ${order.paymentStatus === 'Completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${order.paymentStatus}</span>
+            </div>
+          </div>
+
+          <!-- Customer info -->
+          <div class="grid grid-cols-2 gap-3 text-[10px] border-b pb-2 dark:border-slate-600 font-semibold">
+            <div>
+              <h5 class="font-extrabold uppercase text-gray-400">Recipient Details</h5>
+              <p class="text-slate-900 dark:text-white mt-1 font-black">${order.customer.name}</p>
+              <p class="text-gray-400 mt-1">📞 ${order.customer.phone} - Alt: ${order.customer.altPhone || 'None'}</p>
+              <div class="flex gap-1.5 mt-2">
+                <a href="tel:${order.customer.phone}" class="px-2.5 py-1 bg-brand text-white rounded-md text-[9px] hover:opacity-90"><i class="fas fa-phone"></i> Call Now</a>
+                <a href="https://wa.me/91${order.customer.phone}" target="_blank" class="px-2.5 py-1 bg-emerald-600 text-white rounded-md text-[9px] hover:opacity-90"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+              </div>
+            </div>
+            <div>
+              <h5 class="font-extrabold uppercase text-gray-400">Shipping destination address</h5>
+              <p class="text-gray-600 dark:text-gray-300 mt-1 leading-snug font-bold">${order.customer.address}, ${order.customer.city}, ${order.customer.state} - ${order.customer.pincode}</p>
+              ${order.customer.landmark ? `<p class="text-gray-400 mt-0.5">Landmark: ${order.customer.landmark}</p>` : ''}
+              ${order.customer.note ? `<p class="text-amber-600 bg-amber-50 dark:bg-slate-700/40 p-1 rounded font-semibold italic mt-1 leading-none">Note: "${order.customer.note}"</p>` : ''}
+            </div>
+          </div>
+
+          <!-- Items Ordered list -->
+          <div class="flex flex-col gap-1.5">
+            <h5 class="text-[10px] font-extrabold uppercase text-gray-400">Basket details</h5>
+            ${itemsList}
+            <div class="flex justify-between font-extrabold text-[11px] text-right mt-1">
+              <span class="text-gray-400">Subtotal: ₹${order.subtotal} | Voucher: -₹${order.discount}</span>
+              <span class="text-brand dark:text-accent font-black">Net Pay: ₹${order.total} (${order.paymentMethod.toUpperCase()})</span>
+            </div>
+          </div>
+
+          <!-- Operations Control -->
+          <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t dark:border-slate-600">
+            <div class="flex items-center gap-1 flex-grow">
+              <label class="text-[9px] font-black uppercase text-gray-400">Update Status:</label>
+              <select onchange="window.updateOrderStatus('${orderId}', this.value)" class="flex-grow p-1 border text-[10px] font-bold rounded bg-gray-50 dark:bg-slate-700 dark:border-slate-600 cursor-pointer">
+                <option value="">-- Choose Status Shift --</option>
+                <option value="Confirmed" ${order.status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                <option value="Packed" ${order.status === 'Packed' ? 'selected' : ''}>Packed</option>
+                <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="Out For Delivery" ${order.status === 'Out For Delivery' ? 'selected' : ''}>Out For Delivery</option>
+                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                <option value="Canceled" ${order.status === 'Canceled' ? 'selected' : ''}>Canceled</option>
+              </select>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="window.addOrderTimelineNote('${orderId}')" class="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[9px] font-bold dark:bg-slate-700 dark:text-white cursor-pointer"><i class="fas fa-file-pen"></i> Append Note</button>
+              ${order.paymentStatus !== 'Completed' ? `<button onclick="window.markPaymentCompleted('${orderId}')" class="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-[9px] font-bold hover:opacity-90 cursor-pointer"><i class="fas fa-receipt"></i> Mark Paid</button>` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      // Synchronize Orders dashboard count summary text
+      window.updateOrderSelectionUI();
+    }
+
+    if (!window.selectedOrderIds) window.selectedOrderIds = [];
+
+    window.toggleOrderSelection = function(orderId, checked) {
+      if (!window.selectedOrderIds) window.selectedOrderIds = [];
+      if (checked) {
+        if (!window.selectedOrderIds.includes(orderId)) {
+          window.selectedOrderIds.push(orderId);
+        }
+      } else {
+        window.selectedOrderIds = window.selectedOrderIds.filter(id => id !== orderId);
+      }
+      window.updateOrderSelectionUI();
+    };
+
+    window.toggleAllOrdersSelection = function() {
+      const allOrders = window.storeData.orders || [];
+      if (allOrders.length === 0) return;
+
+      if (!window.selectedOrderIds) window.selectedOrderIds = [];
+      const allSelected = allOrders.every(o => window.selectedOrderIds.includes(o.id || 'REALTIME_TRK'));
+      
+      if (allSelected) {
+        window.selectedOrderIds = [];
+      } else {
+        window.selectedOrderIds = allOrders.map(o => o.id || 'REALTIME_TRK');
+      }
+      
+      document.querySelectorAll('.order-select-checkbox').forEach(chk => {
+        const oId = chk.getAttribute('data-order-id');
+        chk.checked = window.selectedOrderIds.includes(oId);
+      });
+      
+      window.updateOrderSelectionUI();
+    };
+
+    window.updateOrderSelectionUI = function() {
+      const selectedCount = (window.selectedOrderIds || []).length;
+      const totalCount = (window.storeData.orders || []).length;
+      
+      const summaryElem = document.getElementById('orders-selection-summary');
+      if (summaryElem) {
+        if (selectedCount === 0) {
+          summaryElem.innerText = `No orders selected (Total: ${totalCount})`;
+          summaryElem.className = "text-[10px] font-bold text-gray-500 mt-1";
+        } else {
+          summaryElem.innerText = `Selected: ${selectedCount} of ${totalCount} Order(s)`;
+          summaryElem.className = "text-[10px] font-extrabold text-brand dark:text-accent mt-1 animate-pulse";
+        }
+      }
+
+      const btnSelectAllText = document.getElementById('btn-select-all-orders-text');
+      if (btnSelectAllText) {
+        if (selectedCount === totalCount && totalCount > 0) {
+          btnSelectAllText.innerText = 'Deselect All';
+        } else {
+          btnSelectAllText.innerText = 'Select All';
+        }
+      }
+    };
+
+    function generateInvoicePDF(order) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const darkColor = '#1F2937';
+
+      // Elegant Header
+      doc.setFillColor(37, 99, 235); // Brand Blue
+      doc.rect(0, 0, 210, 16, 'F');
+
+      // Title & Branding
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text("ABDU S-CART - COMMERCIAL INVOICE", 15, 10);
+
+      // Metadata Info
+      doc.setTextColor(31, 41, 55);
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text(`INVOICE REFERENCE: ${order.id || 'N/A'}`, 15, 28);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(`Transaction Date: ${new Date(order.createdAt).toLocaleString()}`, 15, 33);
+      doc.text(`Payment Gateway: ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A'} (${order.paymentStatus || 'Placed'})`, 15, 38);
+      doc.text(`Fulfillment Order Status: ${order.status || 'Placed'}`, 15, 43);
+
+      // Support Column (Right side)
+      doc.setFont('Helvetica', 'bold');
+      doc.text("STORE CONTACT & SUPPORT", 135, 28);
+      doc.setFont('Helvetica', 'normal');
+      const supp = window.storeData.support || {};
+      doc.text(`WhatsApp Support: +${supp.whatsapp || '918888888888'}`, 135, 33);
+      doc.text(`Support Email: ${supp.email || 'raeenabdullah11@gmail.com'}`, 135, 38);
+
+      // Divider
+      doc.setDrawColor(229, 231, 235);
+      doc.setLineWidth(0.4);
+      doc.line(15, 48, 195, 48);
+
+      // Billing Recipients
+      doc.setFont('Helvetica', 'bold');
+      doc.text("RECIPIENT & CONSIGNMENT INFO:", 15, 55);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(`Recipient Name: ${order.customer.name}`, 15, 60);
+      doc.text(`Contact Handset: ${order.customer.phone} ${order.customer.altPhone ? `(Alt: ${order.customer.altPhone})` : ''}`, 15, 65);
+
+      doc.setFont('Helvetica', 'bold');
+      doc.text("SHIP-TO DESTINATION ADDRESS:", 110, 55);
+      doc.setFont('Helvetica', 'normal');
+      const adr = `${order.customer.address}, ${order.customer.city}, ${order.customer.state} - ${order.customer.pincode}`;
+      const splitAdr = doc.splitTextToSize(adr, 85);
+      doc.text(splitAdr, 110, 60);
+
+      if (order.customer.landmark) {
+        doc.text(`Landmark reference: ${order.customer.landmark}`, 110, 60 + (splitAdr.length * 4) + 1);
+      }
+
+      // Divider
+      doc.line(15, 80, 195, 80);
+
+      // Table Header Row
+      doc.setFillColor(243, 244, 246);
+      doc.rect(15, 85, 180, 7, 'F');
+      doc.setFont('Helvetica', 'bold');
+      doc.text("Consigned Product & Variant Node Descriptors", 18, 90);
+      doc.text("Unit Cost", 115, 90);
+      doc.text("Qty", 145, 90);
+      doc.text("Subtotal", 170, 90);
+
+      doc.setFont('Helvetica', 'normal');
+      let currentY = 98;
+      (order.items || []).forEach((item) => {
+        let titleLine = item.name;
+        if (item.selectedVariant) {
+          titleLine += ` (Variant: ${item.selectedVariant})`;
+        }
+        const titleLines = doc.splitTextToSize(titleLine, 90);
+        doc.text(titleLines, 18, currentY);
+        
+        doc.text(`Rs. ${item.price}`, 115, currentY);
+        doc.text(`x${item.quantity}`, 145, currentY);
+        doc.text(`Rs. ${item.price * item.quantity}`, 170, currentY);
+
+        currentY += (titleLines.length * 4) + 2;
+      });
+
+      // Divider before Billing
+      doc.line(15, currentY + 1, 195, currentY + 1);
+      currentY += 8;
+
+      // Pricing math totals
+      doc.text("Basket Total Subtotal:", 130, currentY);
+      doc.text(`Rs. ${order.subtotal}`, 170, currentY);
+
+      currentY += 5;
+      doc.text("Discount Voucher Deduction:", 130, currentY);
+      doc.text(`- Rs. ${order.discount || 0}`, 170, currentY);
+
+      currentY += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text("Net Paid Amount Due:", 130, currentY);
+      doc.text(`Rs. ${order.total}`, 170, currentY);
+
+      // Bottom disclaimer
+      doc.setFillColor(249, 250, 251);
+      doc.rect(15, 255, 180, 20, 'F');
+      doc.setTextColor(156, 163, 175);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text("Thank you for choosing ABDU S-CART for your premium orders!", 105, 262, { align: "center" });
+      doc.text("This document constitutes a computerized automated invoice documentation confirmation. Signature is not required.", 105, 268, { align: "center" });
+
+      return doc.output('blob');
+    }
+
+    window.bulkExportSelectedOrders = async function() {
+      const selected = window.selectedOrderIds || [];
+      if (selected.length === 0) {
+        alert("Please select at least one order to export!");
+        return;
+      }
+
+      const confirmExport = confirm(`Ready to build and extract a ZIP archive package containing ${selected.length} invoice PDF(s)?`);
+      if (!confirmExport) return;
+
+      const btn = document.querySelector('button[onclick="window.bulkExportSelectedOrders()"]');
+      const originalText = btn ? btn.innerHTML : 'Export Invoices ZIP';
+      if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Packing Invoices...';
+
+      try {
+        const zip = new window.JSZip();
+        
+        for (const orderId of selected) {
+          const orderObj = (window.storeData.orders || []).find(o => o.id === orderId);
+          if (orderObj) {
+            const pdfBlob = generateInvoicePDF(orderObj);
+            zip.file(`invoice_${orderId}.pdf`, pdfBlob);
+          }
+        }
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const downloadUrl = window.URL.createObjectURL(zipBlob);
+        const anchor = document.createElement('a');
+        anchor.href = downloadUrl;
+        anchor.download = `orders_invoices_archive_${new Date().toISOString().slice(0, 10)}.zip`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        
+        setTimeout(() => {
+          window.URL.revokeObjectURL(downloadUrl);
+          document.body.removeChild(anchor);
+        }, 100);
+
+        if (btn) btn.innerHTML = originalText;
+        alert(`Successfully bundled and downloaded ZIP archive containing ${selected.length} orders invoices!`);
+      } catch (err) {
+        console.error("ZIP building issue:", err);
+        if (btn) btn.innerHTML = originalText;
+        alert("Failed to build ZIP archive: " + err.message);
+      }
+    };
+
+    // GLOBAL SETTINGS MAP AND SYNCS
+    window.setSettingsFields = function() {
+      const settings = window.storeData.settings || {};
+      
+      const logoUrlInput = document.getElementById('setting-logo-url');
+      if (logoUrlInput) logoUrlInput.value = settings.logoUrl || '';
+
+      const splashLogoUrlInput = document.getElementById('setting-splash-logo-url');
+      if (splashLogoUrlInput) splashLogoUrlInput.value = settings.splashLogoUrl || '';
+
+      const codEnabledCheck = document.getElementById('setting-cod-enabled');
+      if (codEnabledCheck) codEnabledCheck.checked = settings.codEnabled !== false;
+
+      const pages = settings.pages || {};
+      const termsArea = document.getElementById('setting-page-terms');
+      if (termsArea) termsArea.value = pages.terms || '';
+
+      const refundArea = document.getElementById('setting-page-refund');
+      if (refundArea) refundArea.value = pages.refund || '';
+
+      const contactArea = document.getElementById('setting-page-contact');
+      if (contactArea) contactArea.value = pages.contact || '';
+
+      const locationsInput = document.getElementById('setting-locations');
+      if (locationsInput) {
+        locationsInput.value = settings.locations || 'Maharashtra, Gujarat';
+      }
+      renderServiceableLocationsTags();
+      renderAllowedStatesGrid();
+    };
+
+    const INDIAN_STATES = [
+      "Andaman & Nicobar Islands",
+      "Andhra Pradesh",
+      "Arunachal Pradesh",
+      "Assam",
+      "Bihar",
+      "Chandigarh",
+      "Chhattisgarh",
+      "Dadra & Nagar Haveli & Daman & Diu",
+      "Delhi",
+      "Goa",
+      "Gujarat",
+      "Haryana",
+      "Himachal Pradesh",
+      "Jammu & Kashmir",
+      "Jharkhand",
+      "Karnataka",
+      "Kerala",
+      "Ladakh",
+      "Lakshadweep",
+      "Madhya Pradesh",
+      "Maharashtra",
+      "Manipur",
+      "Meghalaya",
+      "Mizoram",
+      "Nagaland",
+      "Odisha",
+      "Puducherry",
+      "Punjab",
+      "Rajasthan",
+      "Sikkim",
+      "Tamil Nadu",
+      "Telangana",
+      "Tripura",
+      "Uttar Pradesh",
+      "Uttarakhand",
+      "West Bengal"
+    ];
+
+    window.renderAllowedStatesGrid = function() {
+      const settings = window.storeData.settings || {};
+      // Default allowed is Maharashtra and Gujarat
+      const allowed = settings.allowedStates || ["Gujarat", "Maharashtra"];
+      const grid = document.getElementById('india-states-checkbox-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      INDIAN_STATES.forEach(state => {
+        const checked = allowed.includes(state);
+        const container = document.createElement('label');
+        container.className = "flex items-center gap-2 p-2 rounded-lg bg-white border cursor-pointer hover:bg-brand/5 dark:bg-slate-850 dark:border-slate-700/80 transition-colors select-none";
+        container.innerHTML = `
+          <input type="checkbox" name="allowed-state" value="${state}" ${checked ? 'checked' : ''} class="w-4.5 h-4.5 rounded text-brand focus:ring-brand cursor-pointer">
+          <span class="text-[10px] uppercase font-extrabold text-gray-700 dark:text-gray-200 truncate">${state}</span>
+        `;
+        grid.appendChild(container);
+      });
+    };
+
+    window.toggleAllStates = function(status) {
+      const checkboxed = document.querySelectorAll('input[name="allowed-state"]');
+      checkboxed.forEach(cb => cb.checked = status);
+    };
+
+    window.deployAllowedStatesSettings = async function() {
+      const checkedBoxes = document.querySelectorAll('input[name="allowed-state"]:checked');
+      const allowedStates = Array.from(checkedBoxes).map(cb => cb.value);
+      
+      if (allowedStates.length === 0) {
+        alert("At least one Indian state must be enabled for delivery!");
+        return;
+      }
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await update(ref(db, 'settings'), { allowedStates });
+      } else {
+        if (!window.storeData.settings) window.storeData.settings = {};
+        window.storeData.settings.allowedStates = allowedStates;
+        syncOfflineState();
+      }
+      alert("Fulfillment territory permissions synchronized sitewide!");
+    };
+
+    window.renderServiceableLocationsTags = function() {
+      const settings = window.storeData.settings || {};
+      const rawLocs = settings.locations || 'Maharashtra, Gujarat';
+      const container = document.getElementById('serviceable-locations-tags');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      const locList = rawLocs.split(',').map(s => s.trim()).filter(Boolean);
+      if (locList.length === 0) {
+        container.innerHTML = `<span class="text-xs text-gray-400 italic">No locations configured yet. All locations will show as unserviceable!</span>`;
+        return;
+      }
+      
+      locList.forEach(loc => {
+        const badge = document.createElement('span');
+        badge.className = "px-2.5 py-1 bg-brand/10 text-brand text-[10px] font-bold rounded-lg flex items-center gap-1 dark:bg-slate-700 dark:text-gray-300";
+        badge.innerHTML = `
+          <span>${loc}</span>
+          <button onclick="removeServiceableLocation('${loc.replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 ml-0.5 cursor-pointer text-[9px]"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(badge);
+      });
+    };
+
+    window.removeServiceableLocation = async function(locToRemove) {
+      const settings = window.storeData.settings || {};
+      const rawLocs = settings.locations || 'Maharashtra, Gujarat';
+      const locList = rawLocs.split(',').map(s => s.trim()).filter(Boolean);
+      const filtered = locList.filter(l => l.toLowerCase() !== locToRemove.toLowerCase());
+      const newValue = filtered.join(', ');
+      
+      const locInput = document.getElementById('setting-locations');
+      if (locInput) locInput.value = newValue;
+      await window.deployDeliveryLocations(newValue);
+    };
+
+    window.deployDeliveryLocations = async function(manualValue) {
+      let locations = manualValue;
+      if (locations === undefined) {
+        const locInput = document.getElementById('setting-locations');
+        locations = locInput ? locInput.value.trim() : 'Maharashtra, Gujarat';
+      }
+      
+      if (window.DATABASE_MODE === 'rtdb') {
+        await update(ref(db, 'settings'), { locations });
+      } else {
+        if (!window.storeData.settings) window.storeData.settings = {};
+        window.storeData.settings.locations = locations;
+        syncOfflineState();
+      }
+      renderServiceableLocationsTags();
+      alert("Fulfillment & Delivery Locations map updated sitewide!");
+    };
+
+    window.deployBrandingLogo = async function() {
+      const logoUrl = document.getElementById('setting-logo-url').value.trim();
+      const splashLogoUrl = document.getElementById('setting-splash-logo-url').value.trim();
+      
+      if (window.DATABASE_MODE === 'rtdb') {
+        await update(ref(db, 'settings'), { logoUrl, splashLogoUrl });
+      } else {
+        if (!window.storeData.settings) window.storeData.settings = {};
+        window.storeData.settings.logoUrl = logoUrl;
+        window.storeData.settings.splashLogoUrl = splashLogoUrl;
+        syncOfflineState();
+      }
+      deployBrandingLogoAdmin();
+      alert("Successfully deployed branding logo URL update sitewide!");
+    };
+
+    window.deployPaymentSettings = async function() {
+      const codEnabled = document.getElementById('setting-cod-enabled').checked;
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await update(ref(db, 'settings'), { codEnabled });
+      } else {
+        if (!window.storeData.settings) window.storeData.settings = {};
+        window.storeData.settings.codEnabled = codEnabled;
+        syncOfflineState();
+      }
+      alert("Updated global COD payment availability configurations sitewide!");
+    };
+
+    window.deployDynamicEditorialPages = async function() {
+      const terms = document.getElementById('setting-page-terms').value.trim();
+      const refund = document.getElementById('setting-page-refund').value.trim();
+      const contact = document.getElementById('setting-page-contact').value.trim();
+
+      const pages = { terms, refund, contact };
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        await set(ref(db, 'settings/pages'), pages);
+      } else {
+        if (!window.storeData.settings) window.storeData.settings = {};
+        window.storeData.settings.pages = pages;
+        syncOfflineState();
+      }
+      alert("Successfully synchronized dynamic editorial pages!");
+    };
+
+    // UPDATE EXTRAS CREATING SYSTEM MODS
+    window.updateSystemPassword = async function() {
+      const newpass = document.getElementById('sys-newpass').value.trim();
+      if (!newpass || newpass.length < 6) {
+        alert("Password must be at least 6 characters in length!");
+        return;
+      }
+
+      if (window.DATABASE_MODE === 'rtdb') {
+        const u = auth.currentUser;
+        if (u) {
+          try {
+            await updatePassword(u, newpass);
+            alert("Admin security systems synchronized and login passcode updated!");
+            document.getElementById('sys-newpass').value = '';
+          } catch (e) {
+            alert("Error altering secure passcode: " + e.message);
+          }
+        }
+      } else {
+        // Change sandbox password
+        alert("Sandboxed local credentials updated! Next login will check this state.");
+        document.getElementById('sys-newpass').value = '';
+      }
+    };
+
+    // DARK MODE TOGGLER
+    window.toggleDarkMode = function() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      document.getElementById('dark-icon').className = isDark ? 'fas fa-sun text-amber-400' : 'fas fa-moon';
+      localStorage.setItem('abdu_scart_dark', isDark);
+      if (typeof window.renderRechartsAnalytics === 'function') {
+        window.renderRechartsAnalytics();
+      }
+    };
+
+    // SECURE CSV CATALOG REPORT EXPORT MODULE
+    window.exportCatalogCSV = function() {
+      const items = window.storeData.products || [];
+      if (items.length === 0) {
+        alert("There is no product catalog inventory recorded yet. Add some items to download the report.");
+        return;
+      }
+
+      function escapeCSVField(val) {
+        if (val === undefined || val === null) return '';
+        let str = String(val).trim();
+        str = str.replace(/"/g, '""');
+        if (str.includes(',') || str.includes('\n') || str.includes('\r') || str.includes('"')) {
+          return `"${str}"`;
+        }
+        return str;
+      }
+
+      const headers = [
+        "Product ID",
+        "Product Name",
+        "SKU / Barcode Code",
+        "Original Price (INR)",
+        "Offer Price (INR)",
+        "Category Linked ID/Node",
+        "Current Stock Level",
+        "Low Stock Threshold Level",
+        "Direct Image URLs (Listed)",
+        "Custom Variants Options",
+        "Marketing Tags / Labels",
+        "Delivery Day & Month",
+        "Delivery Year Status",
+        "Custom Redirection Payment URL",
+        "Is Campaign Draft Status",
+        "Is Blocked / Hidden Archive",
+        "Catalog Description Specs"
+      ];
+
+      let csvRows = [];
+      // Format Headers line
+      csvRows.push(headers.map(escapeCSVField).join(","));
+
+      // Append Row elements line-by-line
+      items.forEach(p => {
+        const row = [
+          p.id || '',
+          p.name || '',
+          p.sku || '',
+          p.price || 0,
+          p.offerPrice !== undefined ? p.offerPrice : '',
+          p.category || 'Uncategorized',
+          p.stock !== undefined ? p.stock : 0,
+          p.lowStockAlert !== undefined ? p.lowStockAlert : 3,
+          p.image || '',
+          p.variants || '',
+          p.tags || '',
+          p.deliveryDate || '',
+          p.deliveryYear || '',
+          p.paymentLink || '',
+          p.draft ? "Yes" : "No",
+          p.hidden ? "Yes" : "No",
+          p.description || ''
+        ];
+        csvRows.push(row.map(escapeCSVField).join(","));
+      });
+
+      try {
+        const csvString = csvRows.join("\n");
+        // Use standard CSV binary Blob representation for complete offline and excel compatibility
+        const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Store_Catalog_Inventory_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("CSV Export Exception:", err);
+        alert(`Failed to finish CSV compilation: ${err.message}`);
+      }
+    };
+
+    // --- PRODUCT BULK STOCK UPDATE SYSTEM ---
+    window.selectedBulkProductIds = [];
+
+    window.toggleBulkSelectItem = function(prodId, checked) {
+      if (checked) {
+        if (!window.selectedBulkProductIds.includes(prodId)) {
+          window.selectedBulkProductIds.push(prodId);
+        }
+      } else {
+        window.selectedBulkProductIds = window.selectedBulkProductIds.filter(id => id !== prodId);
+      }
+      window.updateBulkBarUI();
+    };
+
+    window.toggleBulkSelectAll = function(checkbox) {
+      const isChecked = checkbox.checked;
+      const list = window.storeData.products || [];
+      if (isChecked) {
+        window.selectedBulkProductIds = list.map(p => p.id);
+      } else {
+        window.selectedBulkProductIds = [];
+      }
+      
+      // Update checkbox visual states in list
+      document.querySelectorAll('.bulk-prod-checkbox').forEach(cb => {
+        cb.checked = isChecked;
+      });
+      window.updateBulkBarUI();
+    };
+
+    window.clearBulkSelection = function() {
+      window.selectedBulkProductIds = [];
+      const selectAllCb = document.getElementById('bulk-select-all');
+      if (selectAllCb) selectAllCb.checked = false;
+      document.querySelectorAll('.bulk-prod-checkbox').forEach(cb => {
+        cb.checked = false;
+      });
+      window.updateBulkBarUI();
+    };
+
+    window.updateBulkBarUI = function() {
+      const countSpan = document.getElementById('bulk-selected-count');
+      if (countSpan) {
+        countSpan.innerText = (window.selectedBulkProductIds || []).length;
+      }
+      
+      const selectAllCb = document.getElementById('bulk-select-all');
+      if (selectAllCb) {
+        const list = window.storeData.products || [];
+        selectAllCb.checked = list.length > 0 && (window.selectedBulkProductIds || []).length === list.length;
+      }
+    };
+
+    window.applyBulkStockUpdate = async function() {
+      const selectedCount = (window.selectedBulkProductIds || []).length;
+      if (selectedCount === 0) {
+        alert("Please select one or more products using the check boxes first.");
+        return;
+      }
+
+      const op = document.getElementById('bulk-stock-op').value;
+      const valInput = document.getElementById('bulk-stock-val').value.trim();
+      if (valInput === '') {
+        alert("Please specify a stock count value first.");
+        return;
+      }
+
+      const qty = parseInt(valInput);
+      if (isNaN(qty) || qty < 0) {
+        alert("Please enter a non-negative integer for quantity value.");
+        return;
+      }
+
+      if (!confirm(`Are you sure you want to bulk-update stock values of the ${selectedCount} selected product(s)?`)) {
+        return;
+      }
+
+      const list = window.storeData.products || [];
+      let updatePromises = [];
+
+      for (const p of list) {
+        if (window.selectedBulkProductIds.includes(p.id)) {
+          let currentStock = parseInt(p.stock) || 0;
+          if (op === 'set') {
+            p.stock = qty;
+          } else if (op === 'add') {
+            p.stock = currentStock + qty;
+          } else if (op === 'sub') {
+            p.stock = Math.max(0, currentStock - qty);
+          }
+
+          if (window.DATABASE_MODE === 'rtdb') {
+            updatePromises.push(set(ref(db, `products/${p.id}`), p));
+          }
+        }
+      }
+
+      try {
+        if (window.DATABASE_MODE === 'rtdb') {
+          await Promise.all(updatePromises);
+        } else {
+          syncOfflineState();
+        }
+
+        const updatedIds = [...(window.selectedBulkProductIds || [])];
+
+        alert(`✅ Success: ${selectedCount} products updated successfully!`);
+        window.clearBulkSelection();
+        renderProducts();
+
+        // Animate updated cards
+        updatedIds.forEach(id => {
+          const card = document.getElementById(`prod-card-${id}`);
+          if (card) {
+            card.classList.remove('bulk-stock-success-pulse');
+            // force reflow to restart animation on elements
+            void card.offsetWidth;
+            card.classList.add('bulk-stock-success-pulse');
+          }
+        });
+
+        // Scroll the first updated product into view so the user can visually confirm
+        if (updatedIds.length > 0) {
+          const firstCard = document.getElementById(`prod-card-${updatedIds[0]}`);
+          if (firstCard) {
+            firstCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      } catch (err) {
+        console.error("Bulk update failure:", err);
+        alert(`Bulk update database verification failed: ${err.message}`);
+      }
+    };
+
+    window.applyBulkDelete = async function() {
+      const selectedCount = (window.selectedBulkProductIds || []).length;
+      if (selectedCount === 0) {
+        alert("Please select one or more products using the check boxes first.");
+        return;
+      }
+
+      const confirmed = await showDeleteConfirmationModal(`${selectedCount} Selected Product${selectedCount !== 1 ? 's' : ''}`);
+      if (!confirmed) {
+        return;
+      }
+
+      showDeleteLoadingIndicator();
+
+      const list = window.storeData.products || [];
+      let deletePromises = [];
+
+      for (const p of list) {
+        if (window.selectedBulkProductIds.includes(p.id)) {
+          if (window.DATABASE_MODE === 'rtdb') {
+            deletePromises.push(remove(ref(db, `products/${p.id}`)));
+          }
+        }
+      }
+
+      try {
+        if (window.DATABASE_MODE === 'rtdb') {
+          await Promise.all(deletePromises);
+        } else {
+          window.storeData.products = window.storeData.products.filter(p => !window.selectedBulkProductIds.includes(p.id));
+          syncOfflineState();
+        }
+
+        hideDeleteLoadingIndicator();
+        showDeleteSuccessToast(`✅ Success: ${selectedCount} product(s) deleted successfully!`);
+        window.clearBulkSelection();
+        
+        // Ensure UI stays up to date
+        if (window.DATABASE_MODE !== 'rtdb') {
+          renderProducts();
+          updateDashboardAnalytics();
+        }
+
+      } catch (err) {
+        console.error("Bulk delete failure:", err);
+        hideDeleteLoadingIndicator();
+        
+        let customMessage = err.message;
+        if (err.message && err.message.includes("PERMISSION_DENIED")) {
+          customMessage = "Permission Denied. Only authenticated Admins can delete products.";
+        }
+        
+        alert(`Bulk delete failed: ${customMessage}`);
+      }
+    };
+
+    function initSettingsThemeCheck() {
+      const savedDark = localStorage.getItem('abdu_scart_dark') === 'true';
+      if (savedDark) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('dark-icon').className = 'fas fa-sun text-amber-400';
+      }
+    }
+
+    // MASTER RENDER HOOK
+    function renderAdminAll() {
+      deployBrandingLogoAdmin();
+      renderProducts();
+      renderCategoriesTable();
+      renderSliders();
+      renderCoupons();
+      renderOrders();
+      renderCustomers();
+      setInputSupportFields();
+      setFlashSaleInputs();
+      updateDashboardAnalytics();
+      renderAdminNotifications();
+    }
+
+    function deployBrandingLogoAdmin() {
+      const settings = window.storeData.settings || {};
+      const actualLogoUrl = settings.logoUrl || (settings.branding && settings.branding.logoUrl);
+      
+      const loginContainer = document.getElementById('admin-login-branding-logo');
+      const headerContainer = document.getElementById('admin-header-branding-logo');
+      
+      const isRtdb = window.DATABASE_MODE === 'rtdb';
+      const hasUser = auth && auth.currentUser;
+      
+      let badgeText = "Sandbox Session";
+      let badgeClass = "text-[8px] bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400 px-1.5 py-0.5 rounded font-black tracking-wide uppercase";
+      
+      if (isRtdb) {
+        if (hasUser) {
+          badgeText = "Live Connected";
+          badgeClass = "text-[8px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 px-1.5 py-0.5 rounded font-black tracking-wide uppercase";
+        } else {
+          badgeText = "Firebase Connected";
+          badgeClass = "text-[8px] bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400 px-1.5 py-0.5 rounded font-black tracking-wide uppercase";
+        }
+      } else {
+        badgeText = "Sandbox Session";
+        badgeClass = "text-[8px] bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400 px-1.5 py-0.5 rounded font-black tracking-wide uppercase";
+      }
+
+      if (actualLogoUrl) {
+        if (loginContainer) {
+          loginContainer.innerHTML = `
+            <div class="mx-auto w-24 h-24 mb-4 bg-white/10 dark:bg-slate-700/50 rounded-2xl p-2 border border-brand/20 flex items-center justify-center transform transition-all shadow-md">
+              <img src="${actualLogoUrl}" class="max-w-full max-h-full object-contain" alt="Store Logo">
+            </div>
+            <div>
+              <h2 class="text-xl font-black text-gray-800 dark:text-white">Admin Secure Terminal</h2>
+              <p class="text-xs text-gray-400 mt-1 font-semibold">Store Management Network</p>
+            </div>
+          `;
+        }
+        if (headerContainer) {
+          headerContainer.innerHTML = `
+            <img src="${actualLogoUrl}" class="h-8 max-w-[120px] object-contain rounded" alt="Store Logo">
+            <div class="leading-none ml-2">
+              <h1 class="font-extrabold text-sm tracking-tight text-gray-900 dark:text-white">Admin Terminal</h1>
+              <span id="sys-mode-tag" class="${badgeClass}">${badgeText}</span>
+            </div>
+          `;
+        }
+      } else {
+        if (loginContainer) {
+          loginContainer.innerHTML = `
+            <div class="mx-auto w-16 h-16 rounded-full bg-brand/10 dark:bg-slate-700/50 flex items-center justify-center text-brand dark:text-accent text-3xl mb-4">
+              <i class="fas fa-user-shield"></i>
+            </div>
+            <div>
+              <h2 class="text-xl font-black text-gray-800 dark:text-white">Admin Secure Terminal</h2>
+              <p class="text-xs text-gray-400 mt-1 font-semibold">ABDU S-CART Ltd. Control Panel</p>
+            </div>
+          `;
+        }
+        if (headerContainer) {
+          headerContainer.innerHTML = `
+            <i class="fas fa-shield-halved text-brand text-xl dark:text-accent animate-pulse"></i>
+            <div class="leading-none ml-2">
+              <h1 class="font-extrabold text-sm tracking-tight text-gray-900 dark:text-white">ABDU S-CART Terminal</h1>
+              <span id="sys-mode-tag" class="${badgeClass}">${badgeText}</span>
+            </div>
+          `;
+        }
+      }
+    }
+
+    // BOOTSTRAP INITIALIZATION
+    window.addEventListener('DOMContentLoaded', () => {
+      initSettingsThemeCheck();
+      initPlatform();
+    });
+  </script>
+
+  <!-- DYNAMIC FIREBASE SETUP MODAL FOR BLOGGER & HOPWEB -->
+  <div id="firebase-config-modal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/80 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="relative w-full max-w-md mx-4 overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-800 border border-gray-250 dark:border-slate-700 transition-all duration-300 scale-95 opacity-0 transform" id="firebase-config-card">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-4 border-b pb-3 dark:border-slate-700">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-database text-blue-600 dark:text-accent text-lg"></i>
+            <h3 class="font-black text-sm tracking-tight text-gray-950 dark:text-white">Connect Firebase Database</h3>
+          </div>
+          <button onclick="window.closeFirebaseConfigDialog()" class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-300 transition cursor-pointer">
+            <i class="fas fa-times text-xs"></i>
+          </button>
+        </div>
+
+        <p class="text-[11px] text-gray-500 dark:text-slate-400 leading-relaxed mb-4">
+          Blogger ya kisi dusri third-party hosting custom domain pe real Google login aur order synchronization activate karne ke liye apna <strong>Firebase Web SDK configuration</strong> code paste karein. Isse aapko HTML code edit nahi karna hoga!
+        </p>
+
+        <div class="mb-4">
+          <label class="block text-[10px] font-black tracking-wider uppercase text-gray-400 mb-1.5">PASTE SDK CONFIG CODE / JSON Object</label>
+          <textarea id="firebase-raw-config-textarea" rows="6" placeholder="const firebaseConfig = {&#10;  apiKey: &quot;YOUR-API-KEY&quot;,&#10;  authDomain: &quot;PROJECT.firebaseapp.com&quot;,&#10;  databaseURL: &quot;https://PROJECT.firebaseio.com&quot;,&#10;  projectId: &quot;PROJECT-ID&quot;,&#10;  storageBucket: &quot;PROJECT.appspot.com&quot;,&#10;  messagingSenderId: &quot;...&quot;,&#10;  appId: &quot;...&quot;&#10;};" class="w-full text-xs font-mono p-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-accent text-gray-750 dark:text-gray-200 resize-none"></textarea>
+        </div>
+
+        <!-- Help Info Accordion -->
+        <div class="p-3.5 bg-blue-50/55 dark:bg-slate-700/45 rounded-xl border border-blue-100/60 dark:border-slate-700/60 mb-5 text-[10px] leading-normal text-gray-600 dark:text-slate-300">
+          <h4 class="font-extrabold text-blue-800 dark:text-accent uppercase tracking-wider mb-1.5">Kaise nikalein details?</h4>
+          <ol class="list-decimal pl-4 space-y-1">
+            <li>Open Google <strong>Firebase Console</strong> and click on Project Settings (⚙).</li>
+            <li>Scroll down to the <strong>Your Apps / Web Apps</strong> section.</li>
+            <li>Copy the <strong>firebaseConfig</strong> Javascript object, paste it above, and click Save!</li>
+          </ol>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="window.clearFirebaseConfig()" class="px-4 py-2.5 text-xs font-bold text-red-500 border border-red-250 hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-950/20 rounded-xl transition cursor-pointer">Disconnect</button>
+          <button onclick="window.saveFirebaseConfig()" class="flex-1 py-2.5 text-xs font-bold text-white bg-blue-650 hover:bg-blue-700 dark:bg-accent dark:hover:bg-orange-600 rounded-xl transition shadow-sm cursor-pointer text-center">Save & Connect Database</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
